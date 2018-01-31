@@ -53,3 +53,17 @@ import:
 - package: github.com/go-openapi/swag
 - package: github.com/go-openapi/validate
 - package: github.com/go-openapi/loads
+- package: github.com/aliyun/aliyun-log-go-sdk
+  version: 9bbd4fe1fe0ba1e0a5362cec7a0323dcaf90e25f
+- package: github.com/cloudflare/golz4
+  version: ef862a3cdc58a6f1fee4e3af3d44fbe279194cde
+- package: github.com/golang/glog
+  version: 7cc19b78d562895b13596ddce7aafb59dd789318
+- package: github.com/gogo/protobuf
+  version: e18d7aa8f8c624c915db340349aad4c49b10d173
+  subpackages:
+    - proto
+- package: github.com/spf13/cast
+  version: ~1.1.0
+- package: github.com/Jeffail/gabs
+  version: ~1.0.0
