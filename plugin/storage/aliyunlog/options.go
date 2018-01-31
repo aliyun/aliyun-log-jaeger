@@ -31,7 +31,7 @@ const (
 	suffixDependencyLogstore = ".dependency-logstore"
 	suffixLogstoreShardCount = ".logstore-shard-count"
 	suffixLogstoreShardTTL   = ".logstore-shard-ttl"
-	suffixMaxSpanAge         = ".max-span-age"
+	suffixMaxQueryDuration   = ".max-query-duration"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -62,7 +62,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				DependencyLogstore: "jaeger-dependency",
 				LogstoreShardCount: 2,
 				LogstoreShardTTL:   30,
-				MaxSpanAge:         24 * time.Hour,
+				MaxQueryDuration:   24 * time.Hour,
 			},
 			namespace: primaryNamespace,
 		},
@@ -118,9 +118,9 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.LogstoreShardTTL,
 		"The data retention time for logstore in AliCloud Log Service, in days")
 	flagSet.Duration(
-		nsConfig.namespace+suffixMaxSpanAge,
-		nsConfig.MaxSpanAge,
-		"The maximum lookback for spans in AliCloud Log Service")
+		nsConfig.namespace+suffixMaxQueryDuration,
+		nsConfig.MaxQueryDuration,
+		"The maximum query duration for logstore in AliCloud Log Service")
 }
 
 // InitFromViper initializes Options with properties from viper
@@ -140,7 +140,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.DependencyLogstore = v.GetString(cfg.namespace + suffixDependencyLogstore)
 	cfg.LogstoreShardCount = v.GetInt(cfg.namespace + suffixLogstoreShardCount)
 	cfg.LogstoreShardTTL = v.GetInt(cfg.namespace + suffixLogstoreShardTTL)
-	cfg.MaxSpanAge = v.GetDuration(cfg.namespace + suffixMaxSpanAge)
+	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 }
 
 // GetPrimary returns primary configuration.

@@ -72,7 +72,7 @@ type SpanReader struct {
 	ctx      context.Context
 	logstore *sls.LogStore
 	logger   *zap.Logger
-	// The age of the oldest service/operation we will look for.
+	// The age of the oldest data we will look for.
 	maxLookback time.Duration
 }
 

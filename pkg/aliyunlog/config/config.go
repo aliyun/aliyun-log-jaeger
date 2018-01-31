@@ -12,7 +12,7 @@ type Configuration struct {
 	DependencyLogstore string
 	LogstoreShardCount int
 	LogstoreShardTTL   int
-	MaxSpanAge         time.Duration
+	MaxQueryDuration   time.Duration
 }
 
 // ApplyDefaults copies settings from source unless its own value is non-zero.
@@ -41,7 +41,7 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 	if c.LogstoreShardTTL == 0 {
 		c.LogstoreShardTTL = source.LogstoreShardTTL
 	}
-	if c.MaxSpanAge == 0 {
-		c.MaxSpanAge = source.MaxSpanAge
+	if c.MaxQueryDuration == 0 {
+		c.MaxQueryDuration = source.MaxQueryDuration
 	}
 }
