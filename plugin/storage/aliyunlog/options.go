@@ -29,8 +29,6 @@ const (
 	suffixAccessKeySecret    = ".access-key-secret"
 	suffixSpanLogstore       = ".span-logstore"
 	suffixDependencyLogstore = ".dependency-logstore"
-	suffixLogstoreShardCount = ".logstore-shard-count"
-	suffixLogstoreShardTTL   = ".logstore-shard-ttl"
 	suffixMaxQueryDuration   = ".max-query-duration"
 )
 
