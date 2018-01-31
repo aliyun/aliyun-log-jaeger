@@ -56,6 +56,8 @@ func TestOptionsWithFlags(t *testing.T) {
 		"--aliyun-log.max-query-duration=48h",
 		// a couple overrides
 		"--aliyun-log.aux.project=my-jaeger-test-2",
+		"--aliyun-log.aux.access-key-id=id-yyy",
+		"--aliyun-log.aux.access-key-secret=secret-yyy",
 		"--aliyun-log.aux.max-query-duration=15m",
 	})
 	opts.InitFromViper(v)
@@ -72,8 +74,8 @@ func TestOptionsWithFlags(t *testing.T) {
 	aux := opts.Get("aliyun-log.aux")
 	assert.Equal(t, "my-jaeger-test-2", aux.Project)
 	assert.Equal(t, "cn-beijing.log.aliyuncs.com", aux.Endpoint)
-	assert.Equal(t, "id-xxx", aux.AccessKeyID)
-	assert.Equal(t, "secret-xxx", aux.AccessKeySecret)
+	assert.Equal(t, "id-yyy", aux.AccessKeyID)
+	assert.Equal(t, "secret-yyy", aux.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", aux.SpanLogstore)
 	assert.Equal(t, "jaeger-dependency-store", aux.DependencyLogstore)
 	assert.Equal(t, 15*time.Minute, aux.MaxQueryDuration)
