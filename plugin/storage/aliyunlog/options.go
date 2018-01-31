@@ -60,8 +60,6 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				AccessKeySecret:    "",
 				SpanLogstore:       "jaeger-span",
 				DependencyLogstore: "jaeger-dependency",
-				LogstoreShardCount: 2,
-				LogstoreShardTTL:   30,
 				MaxQueryDuration:   24 * time.Hour,
 			},
 			namespace: primaryNamespace,
@@ -109,14 +107,6 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixDependencyLogstore,
 		nsConfig.DependencyLogstore,
 		"The logstore to save dependency data in AliCloud Log Service")
-	flagSet.Int(
-		nsConfig.namespace+suffixLogstoreShardCount,
-		nsConfig.LogstoreShardCount,
-		"The number of shards per logstore in AliCloud Log Service")
-	flagSet.Int(
-		nsConfig.namespace+suffixLogstoreShardTTL,
-		nsConfig.LogstoreShardTTL,
-		"The data retention time for logstore in AliCloud Log Service, in days")
 	flagSet.Duration(
 		nsConfig.namespace+suffixMaxQueryDuration,
 		nsConfig.MaxQueryDuration,
@@ -138,8 +128,6 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.AccessKeySecret = v.GetString(cfg.namespace + suffixAccessKeySecret)
 	cfg.SpanLogstore = v.GetString(cfg.namespace + suffixSpanLogstore)
 	cfg.DependencyLogstore = v.GetString(cfg.namespace + suffixDependencyLogstore)
-	cfg.LogstoreShardCount = v.GetInt(cfg.namespace + suffixLogstoreShardCount)
-	cfg.LogstoreShardTTL = v.GetInt(cfg.namespace + suffixLogstoreShardTTL)
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 }
 

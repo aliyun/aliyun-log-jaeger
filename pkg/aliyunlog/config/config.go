@@ -24,8 +24,6 @@ type Configuration struct {
 	AccessKeySecret    string
 	SpanLogstore       string
 	DependencyLogstore string
-	LogstoreShardCount int
-	LogstoreShardTTL   int
 	MaxQueryDuration   time.Duration
 }
 
@@ -54,12 +52,6 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 	}
 	if c.DependencyLogstore == "" {
 		c.DependencyLogstore = source.DependencyLogstore
-	}
-	if c.LogstoreShardCount == 0 {
-		c.LogstoreShardCount = source.LogstoreShardCount
-	}
-	if c.LogstoreShardTTL == 0 {
-		c.LogstoreShardTTL = source.LogstoreShardTTL
 	}
 	if c.MaxQueryDuration == 0 {
 		c.MaxQueryDuration = source.MaxQueryDuration

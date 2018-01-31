@@ -32,8 +32,6 @@ func TestOptions(t *testing.T) {
 	assert.Empty(t, primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span", primary.SpanLogstore)
 	assert.Equal(t, "jaeger-dependency", primary.DependencyLogstore)
-	assert.Equal(t, int(2), primary.LogstoreShardCount)
-	assert.Equal(t, int(30), primary.LogstoreShardTTL)
 	assert.Equal(t, 24*time.Hour, primary.MaxQueryDuration)
 
 	aux := opts.Get("archive")
@@ -55,12 +53,9 @@ func TestOptionsWithFlags(t *testing.T) {
 		"--aliyun-log.access-key-secret=secret-xxx",
 		"--aliyun-log.span-logstore=jaeger-span-store",
 		"--aliyun-log.dependency-logstore=jaeger-dependency-store",
-		"--aliyun-log.logstore-shard-count=3",
-		"--aliyun-log.logstore-shard-ttl=7",
 		"--aliyun-log.max-query-duration=48h",
 		// a couple overrides
 		"--aliyun-log.aux.project=my-jaeger-test-2",
-		"--aliyun-log.aux.logstore-shard-ttl=1",
 		"--aliyun-log.aux.max-query-duration=15m",
 	})
 	opts.InitFromViper(v)
@@ -72,8 +67,6 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "secret-xxx", primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", primary.SpanLogstore)
 	assert.Equal(t, "jaeger-dependency-store", primary.DependencyLogstore)
-	assert.Equal(t, int(3), primary.LogstoreShardCount)
-	assert.Equal(t, int(7), primary.LogstoreShardTTL)
 	assert.Equal(t, 48*time.Hour, primary.MaxQueryDuration)
 
 	aux := opts.Get("aliyun-log.aux")
@@ -83,8 +76,6 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "secret-xxx", aux.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", aux.SpanLogstore)
 	assert.Equal(t, "jaeger-dependency-store", aux.DependencyLogstore)
-	assert.Equal(t, int(3), aux.LogstoreShardCount)
-	assert.Equal(t, int(1), aux.LogstoreShardTTL)
 	assert.Equal(t, 15*time.Minute, aux.MaxQueryDuration)
 
 }
