@@ -29,22 +29,16 @@ import (
 )
 
 const (
-	traceIDField          = "traceID"
-	spanIDField           = "spanID"
-	parentSpanIDField     = "parentSpanID"
-	operationNameField    = "operationName"
-	referenceTypeField    = "references.%d.type"
-	referenceTraceIDField = "references.%d.traceID"
-	referenceSpanIDField  = "references.%d.spanID"
-	flagsField            = "flags"
-	startTimeField        = "startTime"
-	durationField         = "duration"
-	tagsPrefix            = "tags."
-	logTimestampField     = "logs.%d.timestamp"
-	logFieldsPrefix       = "logs.%d.fields"
-	serviceNameField      = "process.serviceName"
-	processTagsPrefix     = "process.tags."
-	warningField          = "warnings.%d"
+	traceIDField       = "traceID"
+	spanIDField        = "spanID"
+	parentSpanIDField  = "parentSpanID"
+	operationNameField = "operationName"
+	flagsField         = "flags"
+	startTimeField     = "startTime"
+	durationField      = "duration"
+	tagsPrefix         = "tags."
+	serviceNameField   = "process.serviceName"
+	processTagsPrefix  = "process.tags."
 
 	defaultMaxLineNumber = 1000 // the default logstore allowed limit
 	defaultNumTraces     = 100

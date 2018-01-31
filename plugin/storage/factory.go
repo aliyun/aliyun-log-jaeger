@@ -23,6 +23,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/jaegertracing/jaeger/plugin"
+	"github.com/jaegertracing/jaeger/plugin/storage/aliyunlog"
 	"github.com/jaegertracing/jaeger/plugin/storage/cassandra"
 	"github.com/jaegertracing/jaeger/plugin/storage/es"
 	"github.com/jaegertracing/jaeger/plugin/storage/memory"
@@ -32,12 +33,13 @@ import (
 )
 
 const (
+	aliyunlogStorageType     = "aliyun-log"
 	cassandraStorageType     = "cassandra"
 	elasticsearchStorageType = "elasticsearch"
 	memoryStorageType        = "memory"
 )
 
-var allStorageTypes = []string{cassandraStorageType, elasticsearchStorageType, memoryStorageType}
+var allStorageTypes = []string{aliyunlogStorageType, cassandraStorageType, elasticsearchStorageType, memoryStorageType}
 
 // Factory implements storage.Factory interface as a meta-factory for storage components.
 type Factory struct {
@@ -66,6 +68,8 @@ func NewFactory(config FactoryConfig) (*Factory, error) {
 
 func (f *Factory) getFactoryOfType(factoryType string) (storage.Factory, error) {
 	switch factoryType {
+	case aliyunlogStorageType:
+		return aliyunlog.NewFactory(), nil
 	case cassandraStorageType:
 		return cassandra.NewFactory(), nil
 	case elasticsearchStorageType:
