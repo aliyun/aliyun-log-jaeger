@@ -40,8 +40,15 @@ const (
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
-	defaultMaxLineNumber = 1000 // the default logstore allowed limit
-	defaultNumTraces     = 100
+	defaultServiceLimit   = 1000
+	defaultOperationLimit = 1000
+	defaultMaxSpan        = 1000
+	defaultNumTraces      = 100
+
+	emptyTopic = ""
+
+	progressComplete   = "Complete"
+	progressIncomplete = "InComplete"
 )
 
 var (
@@ -59,6 +66,8 @@ var (
 
 	// ErrStartAndEndTimeNotSet occurs when start time and end time are not set
 	ErrStartAndEndTimeNotSet = errors.New("Start and End Time must be set")
+
+	ErrTraceNotFound = errors.New("No trace with that ID found")
 )
 
 // SpanReader can query for and load traces from AliCloud Log Service
@@ -87,44 +96,78 @@ func newSpanReader(logstore *sls.LogStore, logger *zap.Logger, maxLookback time.
 
 // GetTrace takes a traceID and returns a Trace associated with that traceID
 func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
+	s.logger.Info("Try to get trace", zap.String("traceID", traceID.String()))
+	return s.getTrace(traceID.String())
+}
+
+func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
+	currentTime := time.Now()
+	resp, err := s.logstore.GetLogs(
+		"",
+		currentTime.Add(-s.maxLookback).Unix(),
+		currentTime.Unix(),
+		fmt.Sprintf("%s:%s", traceIDField, traceID),
+		defaultMaxSpan,
+		0,
+		false,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Count == 0 {
+		return nil, ErrTraceNotFound
+	}
+
+	// spans := make([]*model.Span, 0)
+
 	return nil, nil
 }
 
 // GetServices returns all services traced by Jaeger, ordered by frequency
 func (s *SpanReader) GetServices() ([]string, error) {
+	topic := emptyTopic
 	currentTime := time.Now()
-	resp, err := s.logstore.GetLogs(
-		"",
-		currentTime.Add(-s.maxLookback).Unix(),
-		currentTime.Unix(),
-		fmt.Sprintf("| select distinct(%s)", serviceNameField),
-		defaultMaxLineNumber,
-		0,
-		false,
-	)
+	from := currentTime.Add(-s.maxLookback).Unix()
+	to := currentTime.Unix()
+	queryExp := fmt.Sprintf("| select distinct(\"%s\") limit %d", serviceNameField, defaultServiceLimit)
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+		"Trying to get services")
+
+	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, "Search service failed")
 	}
+	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
+
 	return logsToStringArray(resp.Logs, serviceNameField)
 }
 
 // GetOperations returns all operations for a specific service traced by Jaeger
 func (s *SpanReader) GetOperations(service string) ([]string, error) {
+	topic := emptyTopic
 	currentTime := time.Now()
-	queryExp := fmt.Sprintf("%s:%s | select distinct(%s)", serviceNameField, service, operationNameField)
-	resp, err := s.logstore.GetLogs(
-		"",
-		currentTime.Add(-s.maxLookback).Unix(),
-		currentTime.Unix(),
-		queryExp,
-		defaultMaxLineNumber,
-		0,
-		false,
-	)
+	from := currentTime.Add(-s.maxLookback).Unix()
+	to := currentTime.Unix()
+	queryExp := fmt.Sprintf("%s:%s | select distinct(%s) limit %d", serviceNameField, service, operationNameField, defaultOperationLimit)
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+		fmt.Sprintf("Trying to get operations for %s", service))
+
+	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Search operation for %s failed", service))
 	}
-	return logsToStringArray(resp.Logs, serviceNameField)
+	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
+
+	return logsToStringArray(resp.Logs, operationNameField)
 }
 
 func logsToStringArray(logs []map[string]string, key string) ([]string, error) {
@@ -161,4 +204,30 @@ func validateQuery(p *spanstore.TraceQueryParameters) error {
 		return ErrDurationMinGreaterThanMax
 	}
 	return nil
+}
+
+func (s *SpanReader) logGetLogsParameters(topic string, from int64, to int64, queryExp string, maxLineNum int64, offset int64, reverse bool, msg string) {
+	s.logger.
+		With(zap.String("topic", topic)).
+		With(zap.Int64("from", from)).
+		With(zap.Int64("to", to)).
+		With(zap.String("queryExp", queryExp)).
+		With(zap.Int64("maxLineNum", maxLineNum)).
+		With(zap.Int64("offset", offset)).
+		With(zap.Bool("reverse", reverse)).
+		Info(msg)
+}
+
+func (s *SpanReader) logProgressIncomplete(topic string, from int64, to int64, queryExp string, maxLineNum int64, offset int64, reverse bool, progress string) {
+	if progress == progressIncomplete {
+		s.logger.
+			With(zap.String("topic", topic)).
+			With(zap.Int64("from", from)).
+			With(zap.Int64("to", to)).
+			With(zap.String("queryExp", queryExp)).
+			With(zap.Int64("maxLineNum", maxLineNum)).
+			With(zap.Int64("offset", offset)).
+			With(zap.Bool("reverse", reverse)).
+			Warn("The response for GetLogs is incomplete")
+	}
 }

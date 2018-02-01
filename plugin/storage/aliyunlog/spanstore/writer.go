@@ -67,7 +67,7 @@ func (s *SpanWriter) WriteSpan(span *model.Span) error {
 
 	start := time.Now()
 	err := s.logstore.PutLogs(&sls.LogGroup{
-		Topic:  proto.String(""),
+		Topic:  proto.String("xxx"),
 		Source: proto.String("0.0.0.0"),
 		Logs:   logs,
 	})
@@ -120,8 +120,8 @@ func (c *Content) Add(key string, value string) {
 
 func (s *SpanWriter) logError(span *model.Span, err error, msg string, logger *zap.Logger) error {
 	logger.
-		With(zap.String("trace_id", span.TraceID.String())).
-		With(zap.String("span_id", span.SpanID.String())).
+		With(zap.String("traceID", span.TraceID.String())).
+		With(zap.String("spanID", span.SpanID.String())).
 		With(zap.Error(err)).
 		Error(msg)
 	return errors.Wrap(err, msg)
