@@ -112,7 +112,7 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	)
 
 	topic := emptyTopic
-	queryExp := fmt.Sprintf("%s: \"%s\"", traceIDField, traceID)
+	queryExp := fmt.Sprintf(`%s: "%s"`, traceIDField, traceID)
 	maxLineNum := int64(defaultPageSizeForSpan)
 	offset := int64(0)
 	reverse := false
@@ -155,7 +155,7 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 }
 
 func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64) (int64, error) {
-	queryExp := fmt.Sprintf("%s: \"%s\" | select count(1)", traceIDField, traceID)
+	queryExp := fmt.Sprintf(`%s: "%s" | select count(1)`, traceIDField, traceID)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -180,7 +180,7 @@ func (s *SpanReader) GetServices() ([]string, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
-	queryExp := fmt.Sprintf("| select distinct(\"%s\") limit %d", serviceNameField, defaultServiceLimit)
+	queryExp := fmt.Sprintf(`| select distinct("%s") limit %d`, serviceNameField, defaultServiceLimit)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -204,7 +204,7 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
 	queryExp := fmt.Sprintf(
-		"%s: \"%s\" | select distinct(%s) limit %d",
+		`%s: "%s" | select distinct(%s) limit %d`,
 		serviceNameField,
 		service,
 		operationNameField,
@@ -343,7 +343,7 @@ func (s *SpanReader) buildFindTraceIDsQuery(traceQuery *spanstore.TraceQueryPara
 }
 
 func (s *SpanReader) buildServiceNameQuery(serviceName string) string {
-	return fmt.Sprintf("\"%s\" = '%s'", serviceNameField, serviceName)
+	return fmt.Sprintf(`"%s" = '%s'`, serviceNameField, serviceName)
 }
 
 func (s *SpanReader) buildOperationNameQuery(operationName string) string {
@@ -379,7 +379,7 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
-	return fmt.Sprintf("\"%s\" = '%s'", tagsPrefix+k, v)
+	return fmt.Sprintf(`"%s" = '%s'`, tagsPrefix+k, v)
 }
 
 func (s *SpanReader) combineSubQueries(subQueries []string) string {
