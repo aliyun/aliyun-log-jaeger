@@ -17,6 +17,7 @@ package spanstore
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
@@ -42,10 +43,12 @@ const (
 
 	defaultServiceLimit    = 1000
 	defaultOperationLimit  = 1000
-	defaultMaxSpanPerTrace = 1000
+	defaultPageSizeForSpan = 1000
 	defaultNumTraces       = 100
 
 	emptyTopic = ""
+
+	firstColumn = "_col0"
 
 	progressComplete   = "Complete"
 	progressIncomplete = "InComplete"
@@ -102,27 +105,70 @@ func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
 func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
 	s.logger.Info("Trying to get trace", zap.String("traceID", traceID))
 
+	topic := emptyTopic
 	currentTime := time.Now()
-	resp, err := s.logstore.GetLogs(
-		"",
-		currentTime.Add(-s.maxLookback).Unix(),
-		currentTime.Unix(),
-		fmt.Sprintf("%s:%s", traceIDField, traceID),
-		0,
-		0,
-		false,
-	)
+	from := currentTime.Add(-s.maxLookback).Unix()
+	to := currentTime.Unix()
+	queryExp := fmt.Sprintf("%s:%s", traceIDField, traceID)
+	maxLineNum := int64(defaultPageSizeForSpan)
+	offset := int64(0)
+	reverse := false
+
+	count, err := s.getSpansCountForTrace(traceID, topic, from, to)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.Count == 0 {
-		return nil, ErrTraceNotFound
+	spans := make([]*model.Span, 0)
+	curCount := int64(0)
+	for ; ; {
+		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+			fmt.Sprintf("Trying to get spans for %s", traceID))
+		resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+		if err != nil {
+			return nil, err
+		}
+		for _, log := range resp.Logs {
+			span, err := ToSpan(log)
+			if err != nil {
+				return nil, err
+			}
+			spans = append(spans, span)
+		}
+		curCount += resp.Count
+		if curCount == count {
+			break
+		}
+		offset += resp.Count
+	}
+	if len(spans) == 0 {
+		return nil, spanstore.ErrTraceNotFound
+	}
+	trace := model.Trace{
+		Spans: spans,
 	}
 
-	// spans := make([]*model.Span, 0)
+	return &trace, nil
+}
 
-	return nil, nil
+func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64) (int64, error) {
+	queryExp := fmt.Sprintf("%s:%s | select count(1)", traceIDField, traceID)
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+		fmt.Sprintf("Trying to get count of spans for %s", traceID))
+
+	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	if err != nil {
+		return 0, err
+	}
+	num, err := strconv.ParseInt(resp.Logs[0][firstColumn], 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return num, nil
 }
 
 // GetServices returns all services traced by Jaeger, ordered by frequency

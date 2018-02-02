@@ -16,16 +16,12 @@ package spanstore
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
-	"github.com/davecgh/go-spew/spew"
-	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/model"
 	storageMetrics "github.com/jaegertracing/jaeger/storage/spanstore/metrics"
 	"github.com/pkg/errors"
-	"github.com/spf13/cast"
 	"github.com/uber/jaeger-lib/metrics"
 	"go.uber.org/zap"
 )
@@ -55,67 +51,16 @@ func NewSpanWriter(logstore *sls.LogStore, logger *zap.Logger, metricsFactory me
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
-	content := s.buildContent(span)
-	s.logger.Info(spew.Sdump(content.Content))
-
-	logs := []*sls.Log{
-		{
-			Time:     proto.Uint32(uint32(span.StartTime.Unix())),
-			Contents: content.Content,
-		},
-	}
+	logGroup := FromSpan(span, "", "0.0.0.0")
 
 	start := time.Now()
-	err := s.logstore.PutLogs(&sls.LogGroup{
-		Topic:  proto.String("xxx"),
-		Source: proto.String("0.0.0.0"),
-		Logs:   logs,
-	})
+	err := s.logstore.PutLogs(logGroup)
 	s.writerMetrics.putLogs.Emit(err, time.Since(start))
 
 	if err != nil {
-		s.logError(span, err, "send log failed", s.logger)
+		s.logError(span, err, "Failed to write span", s.logger)
 	}
 	return err
-}
-
-func (s *SpanWriter) buildContent(span *model.Span) *Content {
-	content := newContent()
-	content.Add(traceIDField, span.TraceID.String())
-	content.Add(spanIDField, span.SpanID.String())
-	content.Add(parentSpanIDField, span.ParentSpanID.String())
-	content.Add(operationNameField, span.OperationName)
-	content.Add(flagsField, fmt.Sprintf("%d", span.Flags))
-	content.Add(startTimeField, cast.ToString(span.StartTime.UnixNano()))
-	content.Add(durationField, cast.ToString(span.Duration.Nanoseconds()))
-	content.Add(serviceNameField, span.Process.ServiceName)
-
-	for _, tag := range span.Tags {
-		content.Add(tagsPrefix+tag.Key, tag.AsString())
-	}
-
-	for _, tag := range span.Process.Tags {
-		content.Add(processTagsPrefix+tag.Key, tag.AsString())
-	}
-	return content
-}
-
-type Content struct {
-	Content []*sls.LogContent
-}
-
-func newContent() *Content {
-	return &Content{
-		Content: []*sls.LogContent{},
-	}
-}
-
-func (c *Content) Add(key string, value string) {
-	content := sls.LogContent{
-		Key:   proto.String(key),
-		Value: proto.String(value),
-	}
-	c.Content = append(c.Content, &content)
 }
 
 func (s *SpanWriter) logError(span *model.Span, err error, msg string, logger *zap.Logger) error {
