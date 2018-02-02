@@ -36,7 +36,7 @@ func TestSpanReader_buildFindTraceIDsQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `where "process.serviceName" = 's' and operationName = 'o' and 1000000000 <= duration and duration <= 2000000000 and "tags.http.method" = 'GET' and "tags.http.status_code" = '200'`
+	expectedStr := `where "process.serviceName" = 's' and operationName = 'o' and 1000000000 <= duration and duration <= 2000000000 and "tags.http.status_code" = '200'`
 	traceQuery := &spanstore.TraceQueryParameters{
 		DurationMin:   time.Second,
 		DurationMax:   time.Second * 2,
@@ -45,9 +45,34 @@ func TestSpanReader_buildFindTraceIDsQuery(t *testing.T) {
 		ServiceName:   "s",
 		OperationName: "o",
 		Tags: map[string]string{
-			"http.method":      "GET",
 			"http.status_code": "200",
 		},
+	}
+	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
+	assert.Equal(t, expectedStr, actualQuery)
+}
+
+func TestSpanReader_buildFindTraceIDsQuery_emptyQuery(t *testing.T) {
+	l := &sls.LogStore{
+		Name: "emptyLogStore",
+	}
+	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
+
+	expectedStr := ""
+	traceQuery := &spanstore.TraceQueryParameters{}
+	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
+	assert.Equal(t, expectedStr, actualQuery)
+}
+
+func TestSpanReader_buildFindTraceIDsQuery_singleCondition(t *testing.T) {
+	l := &sls.LogStore{
+		Name: "emptyLogStore",
+	}
+	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
+
+	expectedStr := `where "process.serviceName" = 'svc1'`
+	traceQuery := &spanstore.TraceQueryParameters{
+		ServiceName:   "svc1",
 	}
 	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
 	assert.Equal(t, expectedStr, actualQuery)
