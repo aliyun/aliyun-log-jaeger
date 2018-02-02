@@ -25,3 +25,15 @@ func TestSpanReader_logsToStringArray(t *testing.T) {
 	require.NoError(t, err)
 	assert.EqualValues(t, []string{"op0", "op1", "op2"}, actual)
 }
+
+func TestSpanReader_buildFindTraceIDsQuery(t *testing.T) {
+	//traceQuery := &spanstore.TraceQueryParameters{
+	//	DurationMin:   time.Second,
+	//	DurationMax:   time.Second * 2,
+	//	StartTimeMin:  time.Time{},
+	//	StartTimeMax:  time.Time{}.Add(time.Second),
+	//	ServiceName:   "s",
+	//	OperationName: "o",
+	//}
+	//
+}

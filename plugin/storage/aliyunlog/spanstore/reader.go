@@ -69,8 +69,6 @@ var (
 
 	// ErrStartAndEndTimeNotSet occurs when start time and end time are not set
 	ErrStartAndEndTimeNotSet = errors.New("Start and End Time must be set")
-
-	ErrTraceNotFound = errors.New("No trace with that ID found")
 )
 
 // SpanReader can query for and load traces from AliCloud Log Service
@@ -109,7 +107,7 @@ func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
-	queryExp := fmt.Sprintf("%s:%s", traceIDField, traceID)
+	queryExp := fmt.Sprintf("%s: \"%s\"", traceIDField, traceID)
 	maxLineNum := int64(defaultPageSizeForSpan)
 	offset := int64(0)
 	reverse := false
@@ -152,7 +150,7 @@ func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
 }
 
 func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64) (int64, error) {
-	queryExp := fmt.Sprintf("%s:%s | select count(1)", traceIDField, traceID)
+	queryExp := fmt.Sprintf("%s: \"%s\" | select count(1)", traceIDField, traceID)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -200,7 +198,13 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
-	queryExp := fmt.Sprintf("%s:%s | select distinct(%s) limit %d", serviceNameField, service, operationNameField, defaultOperationLimit)
+	queryExp := fmt.Sprintf(
+		"%s: \"%s\" | select distinct(%s) limit %d",
+		serviceNameField,
+		service,
+		operationNameField,
+		defaultOperationLimit,
+	)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -231,6 +235,12 @@ func logsToStringArray(logs []map[string]string, key string) ([]string, error) {
 
 // FindTraces retrieves traces that match the traceQuery
 func (s *SpanReader) FindTraces(traceQuery *spanstore.TraceQueryParameters) ([]*model.Trace, error) {
+	if err := validateQuery(traceQuery); err != nil {
+		return nil, err
+	}
+	if traceQuery.NumTraces == 0 {
+		traceQuery.NumTraces = defaultNumTraces
+	}
 	return nil, nil
 }
 
@@ -251,6 +261,89 @@ func validateQuery(p *spanstore.TraceQueryParameters) error {
 		return ErrDurationMinGreaterThanMax
 	}
 	return nil
+}
+
+func (s *SpanReader) buildFindTraceIDsQuery(p *spanstore.TraceQueryParameters) string {
+	subQueries := make([]string, 0)
+
+	//add process.serviceName query
+	if p.ServiceName != "" {
+		serviceNameQuery := s.buildServiceNameQuery(p.ServiceName)
+		subQueries = append(subQueries, serviceNameQuery)
+	}
+
+	//add operationName query
+	if p.OperationName != "" {
+		operationNameQuery := s.buildOperationNameQuery(p.OperationName)
+		subQueries = append(subQueries, operationNameQuery)
+	}
+
+	//add duration query
+	if p.DurationMax != 0 || p.DurationMin != 0 {
+		durationQuery := s.buildDurationQuery(p.DurationMin, p.DurationMax)
+		subQueries = append(subQueries, durationQuery)
+	}
+
+	for k, v := range p.Tags {
+		tagQuery := s.buildTagQuery(k, v)
+		subQueries = append(subQueries, tagQuery)
+	}
+
+	return s.combineSubQueries(subQueries)
+}
+
+func (s *SpanReader) buildServiceNameQuery(serviceName string) string {
+	return fmt.Sprintf("\"%s\" = '%s'", serviceNameField, serviceName)
+}
+
+func (s *SpanReader) buildOperationNameQuery(operationName string) string {
+	return fmt.Sprintf("%s = '%s'", operationNameField, operationName)
+}
+
+func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax time.Duration) string {
+	minDurationNanos := durationMin.Nanoseconds()
+	maxDurationNanos := durationMax.Nanoseconds()
+	if minDurationNanos != 0 && maxDurationNanos != 0 {
+		return fmt.Sprintf(
+			"%d <= %s and %s <= %d",
+			minDurationNanos,
+			durationField,
+			durationField,
+			maxDurationNanos,
+		)
+	} else if minDurationNanos != 0 {
+		return fmt.Sprintf(
+			"%d <= %s",
+			minDurationNanos,
+			durationField,
+		)
+	} else if maxDurationNanos != 0 {
+		return fmt.Sprintf(
+			"%s <= %d",
+			durationField,
+			maxDurationNanos,
+		)
+	} else {
+		return ""
+	}
+}
+
+func (s *SpanReader) buildTagQuery(k string, v string) string {
+	return ""
+}
+
+func (s *SpanReader) combineSubQueries(subQueries []string) string {
+	query := ""
+	if len(subQueries) > 0 {
+		query += "where "
+		for i, subQuery := range subQueries {
+			if i > 0 {
+				query += " and "
+			}
+			query += subQuery
+		}
+	}
+	return query
 }
 
 func (s *SpanReader) logGetLogsParameters(topic string, from int64, to int64, queryExp string, maxLineNum int64, offset int64, reverse bool, msg string) {
