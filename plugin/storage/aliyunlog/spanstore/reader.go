@@ -40,10 +40,10 @@ const (
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
-	defaultServiceLimit   = 1000
-	defaultOperationLimit = 1000
-	defaultMaxSpan        = 1000
-	defaultNumTraces      = 100
+	defaultServiceLimit    = 1000
+	defaultOperationLimit  = 1000
+	defaultMaxSpanPerTrace = 1000
+	defaultNumTraces       = 100
 
 	emptyTopic = ""
 
@@ -96,18 +96,19 @@ func newSpanReader(logstore *sls.LogStore, logger *zap.Logger, maxLookback time.
 
 // GetTrace takes a traceID and returns a Trace associated with that traceID
 func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
-	s.logger.Info("Try to get trace", zap.String("traceID", traceID.String()))
 	return s.getTrace(traceID.String())
 }
 
 func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
+	s.logger.Info("Trying to get trace", zap.String("traceID", traceID))
+
 	currentTime := time.Now()
 	resp, err := s.logstore.GetLogs(
 		"",
 		currentTime.Add(-s.maxLookback).Unix(),
 		currentTime.Unix(),
 		fmt.Sprintf("%s:%s", traceIDField, traceID),
-		defaultMaxSpan,
+		0,
 		0,
 		false,
 	)
