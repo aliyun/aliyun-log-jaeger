@@ -97,16 +97,21 @@ func newSpanReader(logstore *sls.LogStore, logger *zap.Logger, maxLookback time.
 
 // GetTrace takes a traceID and returns a Trace associated with that traceID
 func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
-	return s.getTrace(traceID.String())
-}
-
-func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
-	s.logger.Info("Trying to get trace", zap.String("traceID", traceID))
-
-	topic := emptyTopic
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
+	return s.getTrace(traceID.String(), from, to)
+}
+
+func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, error) {
+	s.logger.Info(
+		"Trying to get trace",
+		zap.String("traceID", traceID),
+		zap.Int64("from", from),
+		zap.Int64("to", to),
+	)
+
+	topic := emptyTopic
 	queryExp := fmt.Sprintf("%s: \"%s\"", traceIDField, traceID)
 	maxLineNum := int64(defaultPageSizeForSpan)
 	offset := int64(0)
@@ -121,10 +126,10 @@ func (s *SpanReader) getTrace(traceID string) (*model.Trace, error) {
 	curCount := int64(0)
 	for ; ; {
 		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
-			fmt.Sprintf("Trying to get spans for %s", traceID))
+			fmt.Sprintf("Trying to get spans for trace %s", traceID))
 		resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, fmt.Sprintf("Search spans for trace %s failed", traceID))
 		}
 		for _, log := range resp.Logs {
 			span, err := ToSpan(log)
@@ -156,11 +161,11 @@ func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64
 	reverse := false
 
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
-		fmt.Sprintf("Trying to get count of spans for %s", traceID))
+		fmt.Sprintf("Trying to get count of spans for trace %s", traceID))
 
 	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, fmt.Sprintf("Failed to get spans count for trace %s", traceID))
 	}
 	num, err := strconv.ParseInt(resp.Logs[0][firstColumn], 10, 64)
 	if err != nil {
@@ -210,11 +215,11 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	reverse := false
 
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
-		fmt.Sprintf("Trying to get operations for %s", service))
+		fmt.Sprintf("Trying to get operations for service %s", service))
 
 	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Search operation for %s failed", service))
+		return nil, errors.Wrap(err, fmt.Sprintf("Search operation for service %s failed", service))
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
 
@@ -241,7 +246,27 @@ func (s *SpanReader) FindTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	if traceQuery.NumTraces == 0 {
 		traceQuery.NumTraces = defaultNumTraces
 	}
-	return nil, nil
+	uniqueTraceIDs, err := s.findTraceIDs(traceQuery)
+	if err != nil {
+		return nil, err
+	}
+	return s.multiRead(uniqueTraceIDs, traceQuery.StartTimeMin.Unix(), traceQuery.StartTimeMax.Unix()+1)
+}
+
+func (s *SpanReader) multiRead(traceIDs []string, from, to int64) ([]*model.Trace, error) {
+	if len(traceIDs) == 0 {
+		return []*model.Trace{}, nil
+	}
+
+	var traces []*model.Trace
+	for _, traceID := range traceIDs {
+		trace, err := s.getTrace(traceID, from, to)
+		if err != nil {
+			return nil, err
+		}
+		traces = append(traces, trace)
+	}
+	return traces, nil
 }
 
 func validateQuery(p *spanstore.TraceQueryParameters) error {
@@ -263,28 +288,53 @@ func validateQuery(p *spanstore.TraceQueryParameters) error {
 	return nil
 }
 
-func (s *SpanReader) buildFindTraceIDsQuery(p *spanstore.TraceQueryParameters) string {
+func (s *SpanReader) findTraceIDs(traceQuery *spanstore.TraceQueryParameters) ([]string, error) {
+	query := s.buildFindTraceIDsQuery(traceQuery)
+
+	topic := emptyTopic
+	from := traceQuery.StartTimeMin.Unix()
+	to := traceQuery.StartTimeMax.Unix() + 1
+	queryExp := fmt.Sprintf("| select distinct(%s)", traceIDField)
+	if len(query) > 0 {
+		queryExp += " " + query
+	}
+	queryExp += fmt.Sprintf(" limit %d", traceQuery.NumTraces)
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find trace ids")
+
+	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to find trace ids")
+	}
+
+	return logsToStringArray(resp.Logs, traceIDField)
+}
+
+func (s *SpanReader) buildFindTraceIDsQuery(traceQuery *spanstore.TraceQueryParameters) string {
 	subQueries := make([]string, 0)
 
 	//add process.serviceName query
-	if p.ServiceName != "" {
-		serviceNameQuery := s.buildServiceNameQuery(p.ServiceName)
+	if traceQuery.ServiceName != "" {
+		serviceNameQuery := s.buildServiceNameQuery(traceQuery.ServiceName)
 		subQueries = append(subQueries, serviceNameQuery)
 	}
 
 	//add operationName query
-	if p.OperationName != "" {
-		operationNameQuery := s.buildOperationNameQuery(p.OperationName)
+	if traceQuery.OperationName != "" {
+		operationNameQuery := s.buildOperationNameQuery(traceQuery.OperationName)
 		subQueries = append(subQueries, operationNameQuery)
 	}
 
 	//add duration query
-	if p.DurationMax != 0 || p.DurationMin != 0 {
-		durationQuery := s.buildDurationQuery(p.DurationMin, p.DurationMax)
+	if traceQuery.DurationMax != 0 || traceQuery.DurationMin != 0 {
+		durationQuery := s.buildDurationQuery(traceQuery.DurationMin, traceQuery.DurationMax)
 		subQueries = append(subQueries, durationQuery)
 	}
 
-	for k, v := range p.Tags {
+	for k, v := range traceQuery.Tags {
 		tagQuery := s.buildTagQuery(k, v)
 		subQueries = append(subQueries, tagQuery)
 	}
