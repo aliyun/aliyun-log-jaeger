@@ -379,7 +379,7 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
-	return ""
+	return fmt.Sprintf("\"%s\" = '%s'", tagsPrefix+k, v)
 }
 
 func (s *SpanReader) combineSubQueries(subQueries []string) string {
