@@ -43,7 +43,7 @@ their names to upper case and replacing punctuation with underscores. For exampl
 The following configuration options are only available via environment variables:
 `)
 			fs := new(pflag.FlagSet)
-			fs.String(storage.SpanStorageTypeEnvVar, "cassandra", "The type of backend (cassandra, elasticsearch, memory) used for trace storage.")
+			fs.String(storage.SpanStorageTypeEnvVar, "cassandra", "The type of backend (aliyun-log, cassandra, elasticsearch, memory) used for trace storage.")
 			fs.String(storage.DependencyStorageTypeEnvVar, "${SPAN_STORAGE}", "The type of backend used for service dependencies storage.")
 			fmt.Fprintln(cmd.OutOrStdout(), strings.Replace(fs.FlagUsages(), "      --", "      ", -1))
 		},
