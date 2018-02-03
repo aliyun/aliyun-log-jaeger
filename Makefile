@@ -145,6 +145,11 @@ build-query-linux:
 build-collector-linux:
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./cmd/collector/collector-linux $(BUILD_INFO) ./cmd/collector/main.go
 
+.PHONY: build-query-collector-linux
+build-query-collector-linux: fmt
+	make build-query-linux
+	make build-collector-linux
+
 .PHONY: docker-no-ui
 docker-no-ui: build-agent-linux build-collector-linux build-query-linux build-crossdock-linux
 	mkdir -p jaeger-ui-build/build/
@@ -165,6 +170,23 @@ docker-images-only:
 	rm -rf cmd/query/jaeger-ui-build
 	docker build -t $(DOCKER_NAMESPACE)/test-driver:${DOCKER_TAG} crossdock/
 	@echo "Finished building test-driver ==============" ; \
+
+.PHONY: docker-images-query-collector
+docker-images-query-collector: build_ui build-query-linux build-collector-linux
+	mkdir -p jaeger-ui-build/build/
+	make docker-image-query
+	make docker-image-collector
+
+.PHONY: docker-image-query
+docker-image-query:
+	cp -r jaeger-ui-build/build/ cmd/query/jaeger-ui-build
+	docker build -t $(DOCKER_NAMESPACE)/jaeger-query:${DOCKER_TAG} cmd/query/
+	@echo "Finished building jaeger-query =============="
+
+.PHONY: docker-image-collector
+docker-image-collector:
+	docker build -t $(DOCKER_NAMESPACE)/jaeger-collector:${DOCKER_TAG} cmd/collector/
+	@echo "Finished building jaeger-collector =============="
 
 .PHONY: docker-push
 docker-push:
