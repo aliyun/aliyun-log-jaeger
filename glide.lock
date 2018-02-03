@@ -1,8 +1,8 @@
-hash: fc93164cbd97c450785a96cb5130459604125527c5dbff3be61a3c6e4d244e1d
-updated: 2018-01-31T11:47:39.471326239+08:00
+hash: 05cc8d362acd873ad7253d0bfaa957f68ff7c7551713a2e92158b1a154f24cc8
+updated: 2018-02-03T11:50:12.749669262+08:00
 imports:
 - name: github.com/aliyun/aliyun-log-go-sdk
-  version: 9bbd4fe1fe0ba1e0a5362cec7a0323dcaf90e25f
+  version: 9f2109735ce80061007a445e82068b18061d1245
 - name: github.com/apache/thrift
   version: 53dd39833a08ce33582e5ff31fa18bb4735d6731
   subpackages:
@@ -133,6 +133,12 @@ imports:
   version: df1e16fde7fc330a0ca68167c23bf7ed6ac31d6d
 - name: github.com/pelletier/go-toml
   version: 439fbba1f887c286024370cb4f281ba815c4c7d7
+- name: github.com/pierrec/lz4
+  version: ed8d4cc3b461464e69798080a0092bd028910298
+- name: github.com/pierrec/xxHash
+  version: a0006b13c722f7f12368c00a3d3c2ae8a999a0c6
+  subpackages:
+  - xxHash32
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/pmezard/go-difflib
