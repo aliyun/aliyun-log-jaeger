@@ -124,7 +124,7 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 
 	spans := make([]*model.Span, 0)
 	curCount := int64(0)
-	for ; ; {
+	for {
 		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 			fmt.Sprintf("Trying to get spans for trace %s", traceID))
 		resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
