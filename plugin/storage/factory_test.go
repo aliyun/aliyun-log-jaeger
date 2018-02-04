@@ -19,6 +19,7 @@ import (
 	"flag"
 	"testing"
 
+	"github.com/jaegertracing/jaeger/plugin/storage/memory"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -56,7 +57,7 @@ func TestNewFactory(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, f.factories)
 	assert.NotEmpty(t, f.factories[elasticsearchStorageType])
-	assert.NotEmpty(t, f.factories[memoryStorageType])
+	assert.Equal(t, memory.NewFactory(), f.factories[memoryStorageType])
 	assert.Equal(t, elasticsearchStorageType, f.SpanStorageType)
 	assert.Equal(t, memoryStorageType, f.DependenciesStorageType)
 

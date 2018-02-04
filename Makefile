@@ -80,7 +80,7 @@ storage-integration-test: go-gen
 
 .PHONY: aliyunlog-test
 aliyunlog-test: go-gen
-	$(GOTEST) ./plugin/storage/aliyunlog/...
+	$(GOTEST) ./plugin/...
 
 all-pkgs:
 	@echo $(ALL_PKGS) | tr ' ' '\n' | sort
