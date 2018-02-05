@@ -31,7 +31,6 @@ func TestOptions(t *testing.T) {
 	assert.Empty(t, primary.AccessKeyID)
 	assert.Empty(t, primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span", primary.SpanLogstore)
-	assert.Equal(t, "jaeger-dependency", primary.DependencyLogstore)
 	assert.Equal(t, 24*time.Hour, primary.MaxQueryDuration)
 
 	aux := opts.Get("archive")
@@ -40,7 +39,6 @@ func TestOptions(t *testing.T) {
 	assert.Equal(t, primary.AccessKeyID, aux.AccessKeyID)
 	assert.Equal(t, primary.AccessKeySecret, aux.AccessKeySecret)
 	assert.Equal(t, primary.SpanLogstore, aux.SpanLogstore)
-	assert.Equal(t, primary.DependencyLogstore, aux.DependencyLogstore)
 }
 
 func TestOptionsWithFlags(t *testing.T) {
@@ -52,7 +50,6 @@ func TestOptionsWithFlags(t *testing.T) {
 		"--aliyun-log.access-key-id=id-xxx",
 		"--aliyun-log.access-key-secret=secret-xxx",
 		"--aliyun-log.span-logstore=jaeger-span-store",
-		"--aliyun-log.dependency-logstore=jaeger-dependency-store",
 		"--aliyun-log.max-query-duration=48h",
 		// a couple overrides
 		"--aliyun-log.aux.project=my-jaeger-test-2",
@@ -68,7 +65,6 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "id-xxx", primary.AccessKeyID)
 	assert.Equal(t, "secret-xxx", primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", primary.SpanLogstore)
-	assert.Equal(t, "jaeger-dependency-store", primary.DependencyLogstore)
 	assert.Equal(t, 48*time.Hour, primary.MaxQueryDuration)
 
 	aux := opts.Get("aliyun-log.aux")
@@ -77,7 +73,6 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "id-yyy", aux.AccessKeyID)
 	assert.Equal(t, "secret-yyy", aux.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", aux.SpanLogstore)
-	assert.Equal(t, "jaeger-dependency-store", aux.DependencyLogstore)
 	assert.Equal(t, 15*time.Minute, aux.MaxQueryDuration)
 
 }
