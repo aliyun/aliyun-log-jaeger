@@ -190,7 +190,7 @@ func (s *SpanReader) GetServices() ([]string, error) {
 
 	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, "Search service failed")
+		return nil, errors.Wrap(err, "Search services failed")
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
 
@@ -219,7 +219,7 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 
 	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Search operation for service %s failed", service))
+		return nil, errors.Wrap(err, fmt.Sprintf("Search operations for service %s failed", service))
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
 
