@@ -2,11 +2,10 @@ version: '2'
 
 services:
     jaeger-collector:
-      image: com.aliyun/jaeger-collector:0.0.1
+      image: reg.docker.alibaba-inc.com/jaeger/jaeger-collector:0.0.1
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
-        - DEPENDENCY_STORAGE_TYPE=aliyun-log
-      command: ["/go/bin/collector-linux", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}", "--aliyun-log.dependency-logstore=${DEPENDENCY_LOGSTORE}"]
+      command: ["/go/bin/collector-linux", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
       ports:
         - "14269"
         - "14268:14268"
@@ -15,11 +14,10 @@ services:
       restart: on-failure
 
     jaeger-query:
-      image: com.aliyun/jaeger-query:0.0.1
+      image: reg.docker.alibaba-inc.com/jaeger/jaeger-query:0.0.1
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
-        - DEPENDENCY_STORAGE_TYPE=aliyun-log
-      command: ["/go/bin/query-linux", "--query.static-files=/go/jaeger-ui/", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}", "--aliyun-log.dependency-logstore=${DEPENDENCY_LOGSTORE}"]
+      command: ["/go/bin/query-linux", "--query.static-files=/go/jaeger-ui/", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
       ports:
         - "16686:16686"
         - "16687"
