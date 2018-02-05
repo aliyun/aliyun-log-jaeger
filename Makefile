@@ -204,6 +204,21 @@ docker-push:
 		docker push $(DOCKER_NAMESPACE)/jaeger-$$component ; \
 	done
 
+.PHONY: docker-push-query-collector
+docker-push-query-collector:
+	make docker-push-query
+	make docker-push-collector
+
+.PHONY: docker-push-query
+docker-push-query:
+	docker push $(DOCKER_NAMESPACE)/jaeger-query:${DOCKER_TAG}
+	@echo "Finished pushing jaeger-query =============="
+
+.PHONY: docker-push-collector
+docker-push-collector:
+	docker push $(DOCKER_NAMESPACE)/jaeger-collector:${DOCKER_TAG}
+	@echo "Finished pushing jaeger-collector =============="
+
 .PHONY: build-crossdock-linux
 build-crossdock-linux:
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./crossdock/crossdock-linux ./crossdock/main.go
