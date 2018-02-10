@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
@@ -41,6 +42,8 @@ const (
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
+	spansCountField = "spansCount"
+
 	defaultServiceLimit    = 1000
 	defaultOperationLimit  = 1000
 	defaultPageSizeForSpan = 1000
@@ -52,6 +55,8 @@ const (
 
 	progressComplete   = "Complete"
 	progressIncomplete = "InComplete"
+
+	querySuffixTemplate = `| select {traceIDField}, max_by("{serviceNameField}", {durationField}) as "{serviceNameField}", max_by({operationNameField}, {durationField}) as {operationNameField}, max_by({durationField}, {durationField}) as {durationField}, count(1) as {spansCountField} from (select {traceIDField}, "{serviceNameField}", {operationNameField}, {durationField} from log limit {maxLineNum}) group by {traceIDField} limit {numTraces}`
 )
 
 var (
@@ -253,6 +258,16 @@ func (s *SpanReader) FindTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	return s.multiRead(uniqueTraceIDs, traceQuery.StartTimeMin.Unix(), traceQuery.StartTimeMax.Unix()+1)
 }
 
+func (s *SpanReader) FindTraceSummaries(traceQuery *spanstore.TraceQueryParameters) ([]*model.TraceSummary, error) {
+	if err := validateQuery(traceQuery); err != nil {
+		return nil, err
+	}
+	if traceQuery.NumTraces == 0 {
+		traceQuery.NumTraces = defaultNumTraces
+	}
+	return s.findTraces(traceQuery)
+}
+
 func (s *SpanReader) multiRead(traceIDs []string, from, to int64) ([]*model.Trace, error) {
 	if len(traceIDs) == 0 {
 		return []*model.Trace{}, nil
@@ -289,7 +304,7 @@ func validateQuery(p *spanstore.TraceQueryParameters) error {
 }
 
 func (s *SpanReader) findTraceIDs(traceQuery *spanstore.TraceQueryParameters) ([]string, error) {
-	query := s.buildFindTraceIDsQuery(traceQuery)
+	query := s.buildFindTracesQuery(traceQuery)
 
 	topic := emptyTopic
 	from := traceQuery.StartTimeMin.Unix()
@@ -313,8 +328,27 @@ func (s *SpanReader) findTraceIDs(traceQuery *spanstore.TraceQueryParameters) ([
 	return logsToStringArray(resp.Logs, traceIDField)
 }
 
-func (s *SpanReader) buildFindTraceIDsQuery(traceQuery *spanstore.TraceQueryParameters) string {
-	subQueries := make([]string, 0)
+func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*model.Trace, error) {
+	topic := emptyTopic
+	from := traceQuery.StartTimeMin.Unix()
+	to := traceQuery.StartTimeMax.Unix() + 1
+	queryExp := s.buildFindTracesQuery(traceQuery)
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find trace summaries")
+
+	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to find trace summaries")
+	}
+
+	return ToTraceSummaries(resp.Logs)
+}
+
+func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParameters) string {
+	var subQueries []string
 
 	//add process.serviceName query
 	if traceQuery.ServiceName != "" {
@@ -339,15 +373,21 @@ func (s *SpanReader) buildFindTraceIDsQuery(traceQuery *spanstore.TraceQueryPara
 		subQueries = append(subQueries, tagQuery)
 	}
 
-	return s.combineSubQueries(subQueries)
+	query := s.combineSubQueries(subQueries)
+	if query != "" {
+		query += " "
+	}
+	query += s.getQuerySuffix(10000, traceQuery.NumTraces)
+
+	return query
 }
 
 func (s *SpanReader) buildServiceNameQuery(serviceName string) string {
-	return fmt.Sprintf(`"%s" = '%s'`, serviceNameField, serviceName)
+	return fmt.Sprintf(`%s: "%s"`, serviceNameField, serviceName)
 }
 
 func (s *SpanReader) buildOperationNameQuery(operationName string) string {
-	return fmt.Sprintf("%s = '%s'", operationNameField, operationName)
+	return fmt.Sprintf(`%s: "%s"`, operationNameField, operationName)
 }
 
 func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax time.Duration) string {
@@ -355,17 +395,17 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 	maxDurationNanos := durationMax.Nanoseconds()
 	if minDurationNanos != 0 && maxDurationNanos != 0 {
 		return fmt.Sprintf(
-			"%d <= %s and %s <= %d",
-			minDurationNanos,
+			"%s >= %d and %s <= %d",
 			durationField,
+			minDurationNanos,
 			durationField,
 			maxDurationNanos,
 		)
 	} else if minDurationNanos != 0 {
 		return fmt.Sprintf(
-			"%d <= %s",
-			minDurationNanos,
+			"%s >= %d",
 			durationField,
+			minDurationNanos,
 		)
 	} else if maxDurationNanos != 0 {
 		return fmt.Sprintf(
@@ -379,21 +419,32 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
-	return fmt.Sprintf(`"%s" = '%s'`, tagsPrefix+k, v)
+	return fmt.Sprintf(`%s: "%s"`, tagsPrefix+k, v)
 }
 
 func (s *SpanReader) combineSubQueries(subQueries []string) string {
 	query := ""
-	if len(subQueries) > 0 {
-		query += "where "
-		for i, subQuery := range subQueries {
-			if i > 0 {
-				query += " and "
-			}
+	for _, subQuery := range subQueries {
+		if query != "" {
+			query += " and "
+		}
+		if subQuery != "" {
 			query += subQuery
 		}
 	}
 	return query
+}
+
+func (s *SpanReader) getQuerySuffix(maxLineNum int64, numTraces int) string {
+	r := strings.NewReplacer("{traceIDField}", traceIDField,
+		"{serviceNameField}", serviceNameField,
+		"{operationNameField}", operationNameField,
+		"{durationField}", durationField,
+		"{spansCountField}", spansCountField,
+		"{maxLineNum}", strconv.FormatInt(maxLineNum, 10),
+		"{numTraces}", strconv.Itoa(numTraces),
+	)
+	return r.Replace(querySuffixTemplate)
 }
 
 func (s *SpanReader) logGetLogsParameters(topic string, from int64, to int64, queryExp string, maxLineNum int64, offset int64, reverse bool, msg string) {

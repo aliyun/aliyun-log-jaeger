@@ -24,3 +24,5 @@ crossdock/crossdock-linux
 run-crossdock.log
 plugin/storage/aliyunlog/spanstore/local_reader_test.go
 docker-compose/.env
+.DS_Store
+local_SPL.txt

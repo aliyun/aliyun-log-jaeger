@@ -15,6 +15,7 @@
 package spanstore
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -44,13 +45,13 @@ func TestSpanReader_logsToStringArray(t *testing.T) {
 	assert.EqualValues(t, []string{"op0", "op1", "op2"}, actual)
 }
 
-func TestSpanReader_buildFindTraceIDsQuery(t *testing.T) {
+func TestSpanReader_buildFindTracesQuery(t *testing.T) {
 	l := &sls.LogStore{
 		Name: "emptyLogStore",
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `where "process.serviceName" = 's' and operationName = 'o' and 1000000000 <= duration and duration <= 2000000000 and "tags.http.status_code" = '200'`
+	expectedStr := `process.serviceName: "s" and operationName: "o" and duration >= 1000000000 and duration <= 2000000000 and tags.http.status_code: "200" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit 30`
 	traceQuery := &spanstore.TraceQueryParameters{
 		DurationMin:   time.Second,
 		DurationMax:   time.Second * 2,
@@ -61,34 +62,38 @@ func TestSpanReader_buildFindTraceIDsQuery(t *testing.T) {
 		Tags: map[string]string{
 			"http.status_code": "200",
 		},
+		NumTraces: 30,
 	}
-	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
+	actualQuery := r.buildFindTracesQuery(traceQuery)
 	assert.Equal(t, expectedStr, actualQuery)
 }
 
-func TestSpanReader_buildFindTraceIDsQuery_emptyQuery(t *testing.T) {
+func TestSpanReader_buildFindTracesQuery_emptyQuery(t *testing.T) {
 	l := &sls.LogStore{
 		Name: "emptyLogStore",
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := ""
-	traceQuery := &spanstore.TraceQueryParameters{}
-	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
+	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
+	traceQuery := &spanstore.TraceQueryParameters{
+		NumTraces: defaultNumTraces,
+	}
+	actualQuery := r.buildFindTracesQuery(traceQuery)
 	assert.Equal(t, expectedStr, actualQuery)
 }
 
-func TestSpanReader_buildFindTraceIDsQuery_singleCondition(t *testing.T) {
+func TestSpanReader_buildFindTracesQuery_singleCondition(t *testing.T) {
 	l := &sls.LogStore{
 		Name: "emptyLogStore",
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `where "process.serviceName" = 'svc1'`
+	expectedStr := `process.serviceName: "svc1" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
 	traceQuery := &spanstore.TraceQueryParameters{
 		ServiceName: "svc1",
+		NumTraces: defaultNumTraces,
 	}
-	actualQuery := r.buildFindTraceIDsQuery(traceQuery)
+	actualQuery := r.buildFindTracesQuery(traceQuery)
 	assert.Equal(t, expectedStr, actualQuery)
 }
 
@@ -98,7 +103,7 @@ func TestSpanReader_buildServiceNameQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `"process.serviceName" = 'svc1'`
+	expectedStr := `process.serviceName: "svc1"`
 	serviceNameQuery := r.buildServiceNameQuery("svc1")
 	assert.Equal(t, expectedStr, serviceNameQuery)
 }
@@ -109,8 +114,8 @@ func TestSpanReader_buildOperationNameQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := "operationName = 'op1'"
-	operationNameQuery := r.buildOperationNameQuery("op1")
+	expectedStr := `operationName: "HTTP GET"`
+	operationNameQuery := r.buildOperationNameQuery("HTTP GET")
 	assert.Equal(t, expectedStr, operationNameQuery)
 }
 
@@ -120,13 +125,13 @@ func TestSpanReader_buildDurationQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := "1000000000 <= duration and duration <= 2000000000"
+	expectedStr := "duration >= 1000000000 and duration <= 2000000000"
 	durationMin := time.Second
 	durationMax := time.Second * 2
 	durationQuery := r.buildDurationQuery(durationMin, durationMax)
 	assert.Equal(t, expectedStr, durationQuery)
 
-	expectedStr = "12000000 <= duration"
+	expectedStr = "duration >= 12000000"
 	durationMin = time.Millisecond * 12
 	durationQuery = r.buildDurationQuery(durationMin, 0)
 	assert.Equal(t, expectedStr, durationQuery)
@@ -147,7 +152,54 @@ func TestSpanReader_buildTagQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `"tags.http.method" = 'POST'`
+	expectedStr := `tags.http.method: "POST"`
 	operationNameQuery := r.buildTagQuery("http.method", "POST")
 	assert.Equal(t, expectedStr, operationNameQuery)
+}
+
+func TestSpanReader_combineSubQueries(t *testing.T) {
+	l := &sls.LogStore{
+		Name: "emptyLogStore",
+	}
+	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
+
+	expectedStr := ""
+	query := r.combineSubQueries(nil)
+	assert.Equal(t, expectedStr, query)
+
+	var subQueries []string
+	expectedStr = ""
+	query = r.combineSubQueries(subQueries)
+	assert.Equal(t, expectedStr, query)
+
+	subQueries = []string{"", "", ""}
+	expectedStr = ""
+	query = r.combineSubQueries(subQueries)
+	assert.Equal(t, expectedStr, query)
+
+	subQueries = []string{`tags.http.method: "POST"`}
+	expectedStr = `tags.http.method: "POST"`
+	query = r.combineSubQueries(subQueries)
+	assert.Equal(t, expectedStr, query)
+
+	subQueries = []string{`process.serviceName: "svc1"`, `tags.http.method: "POST"`}
+	expectedStr = `process.serviceName: "svc1" and tags.http.method: "POST"`
+	query = r.combineSubQueries(subQueries)
+	assert.Equal(t, expectedStr, query)
+
+	subQueries = []string{`process.serviceName: "svc1"`, `operationName: "HTTP GET"`, `tags.http.method: "POST"`}
+	expectedStr = `process.serviceName: "svc1" and operationName: "HTTP GET" and tags.http.method: "POST"`
+	query = r.combineSubQueries(subQueries)
+	assert.Equal(t, expectedStr, query)
+}
+
+func TestSpanReader_getQuerySuffix(t *testing.T) {
+	l := &sls.LogStore{
+		Name: "emptyLogStore",
+	}
+	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
+
+	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit 20`
+	query := r.getQuerySuffix(10000, 20)
+	assert.Equal(t, expectedStr, query)
 }
