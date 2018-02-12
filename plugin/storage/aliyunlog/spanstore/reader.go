@@ -42,12 +42,11 @@ const (
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
-	spansCountField = "spansCount"
-
 	defaultServiceLimit    = 1000
 	defaultOperationLimit  = 1000
 	defaultPageSizeForSpan = 1000
 	defaultNumTraces       = 100
+	defaultMaxNum          = 100000
 
 	emptyTopic = ""
 
@@ -56,7 +55,7 @@ const (
 	progressComplete   = "Complete"
 	progressIncomplete = "InComplete"
 
-	querySuffixTemplate = `| select {traceIDField}, max_by("{serviceNameField}", {durationField}) as "{serviceNameField}", max_by({operationNameField}, {durationField}) as {operationNameField}, max_by({durationField}, {durationField}) as {durationField}, count(1) as {spansCountField} from (select {traceIDField}, "{serviceNameField}", {operationNameField}, {durationField} from log limit {maxLineNum}) group by {traceIDField} limit {numTraces}`
+	querySuffixTemplate = `| select {traceIDField}, max_by("{serviceNameField}", {durationField}) as "{serviceNameField}", max_by({operationNameField}, {durationField}) as {operationNameField}, max_by({startTimeField}, {durationField}) as {startTimeField}, max_by({durationField}, {durationField}) as {durationField} from (select {traceIDField}, "{serviceNameField}", {operationNameField}, {startTimeField}, {durationField} from log limit {maxLineNum}) group by {traceIDField} limit {numTraces}`
 )
 
 var (
@@ -251,20 +250,6 @@ func (s *SpanReader) FindTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	if traceQuery.NumTraces == 0 {
 		traceQuery.NumTraces = defaultNumTraces
 	}
-	uniqueTraceIDs, err := s.findTraceIDs(traceQuery)
-	if err != nil {
-		return nil, err
-	}
-	return s.multiRead(uniqueTraceIDs, traceQuery.StartTimeMin.Unix(), traceQuery.StartTimeMax.Unix()+1)
-}
-
-func (s *SpanReader) FindTraceSummaries(traceQuery *spanstore.TraceQueryParameters) ([]*model.TraceSummary, error) {
-	if err := validateQuery(traceQuery); err != nil {
-		return nil, err
-	}
-	if traceQuery.NumTraces == 0 {
-		traceQuery.NumTraces = defaultNumTraces
-	}
 	return s.findTraces(traceQuery)
 }
 
@@ -337,14 +322,14 @@ func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 	offset := int64(0)
 	reverse := false
 
-	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find trace summaries")
+	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find traces")
 
 	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to find trace summaries")
+		return nil, errors.Wrap(err, "Failed to find traces")
 	}
 
-	return ToTraceSummaries(resp.Logs)
+	return ToTraces(resp.Logs)
 }
 
 func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParameters) string {
@@ -377,7 +362,7 @@ func (s *SpanReader) buildFindTracesQuery(traceQuery *spanstore.TraceQueryParame
 	if query != "" {
 		query += " "
 	}
-	query += s.getQuerySuffix(10000, traceQuery.NumTraces)
+	query += s.getQuerySuffix(defaultMaxNum, traceQuery.NumTraces)
 
 	return query
 }
@@ -440,7 +425,7 @@ func (s *SpanReader) getQuerySuffix(maxLineNum int64, numTraces int) string {
 		"{serviceNameField}", serviceNameField,
 		"{operationNameField}", operationNameField,
 		"{durationField}", durationField,
-		"{spansCountField}", spansCountField,
+		"{startTimeField}", startTimeField,
 		"{maxLineNum}", strconv.FormatInt(maxLineNum, 10),
 		"{numTraces}", strconv.Itoa(numTraces),
 	)

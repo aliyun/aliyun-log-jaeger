@@ -21,6 +21,7 @@ import (
 	"github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
 
@@ -32,6 +33,11 @@ func FromSpan(span *model.Span, topic, source string) *sls.LogGroup {
 // ToSpan converts a log record to a model.Span
 func ToSpan(log map[string]string) (*model.Span, error) {
 	return converter{}.toSpan(log)
+}
+
+// ToTraces converts logs to []*model.Trace
+func ToTraces(logs []map[string]string) ([]*model.Trace, error) {
+	return converter{}.toTraces(logs)
 }
 
 type converter struct{}
@@ -133,4 +139,26 @@ func (c converter) appendTags(tags model.KeyValues, prefix, k, v string) model.K
 		return append(tags, kv)
 	}
 	return tags
+}
+
+func (c converter) toTraces(logs []map[string]string) ([]*model.Trace, error) {
+	var traces []*model.Trace
+	for _, log := range logs {
+		trace, err := c.toTrace(log)
+		if err != nil {
+			return nil, err
+		}
+		traces = append(traces, trace)
+	}
+	return traces, nil
+}
+
+func (c converter) toTrace(log map[string]string) (*model.Trace, error) {
+	span, err := c.toSpan(log)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to convert log to span")
+	}
+	return &model.Trace{
+		Spans: []*model.Span{span},
+	}, nil
 }

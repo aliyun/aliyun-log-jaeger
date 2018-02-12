@@ -51,7 +51,7 @@ func TestSpanReader_buildFindTracesQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `process.serviceName: "s" and operationName: "o" and duration >= 1000000000 and duration <= 2000000000 and tags.http.status_code: "200" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit 30`
+	expectedStr := `process.serviceName: "s" and operationName: "o" and duration >= 1000000000 and duration <= 2000000000 and tags.http.status_code: "200" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(startTime, duration) as startTime, max_by(duration, duration) as duration from (select traceID, "process.serviceName", operationName, startTime, duration from log limit 100000) group by traceID limit 30`
 	traceQuery := &spanstore.TraceQueryParameters{
 		DurationMin:   time.Second,
 		DurationMax:   time.Second * 2,
@@ -74,7 +74,7 @@ func TestSpanReader_buildFindTracesQuery_emptyQuery(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
+	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(startTime, duration) as startTime, max_by(duration, duration) as duration from (select traceID, "process.serviceName", operationName, startTime, duration from log limit 100000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
 	traceQuery := &spanstore.TraceQueryParameters{
 		NumTraces: defaultNumTraces,
 	}
@@ -88,10 +88,10 @@ func TestSpanReader_buildFindTracesQuery_singleCondition(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `process.serviceName: "svc1" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
+	expectedStr := `process.serviceName: "svc1" | select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(startTime, duration) as startTime, max_by(duration, duration) as duration from (select traceID, "process.serviceName", operationName, startTime, duration from log limit 100000) group by traceID limit ` + strconv.Itoa(defaultNumTraces)
 	traceQuery := &spanstore.TraceQueryParameters{
 		ServiceName: "svc1",
-		NumTraces: defaultNumTraces,
+		NumTraces:   defaultNumTraces,
 	}
 	actualQuery := r.buildFindTracesQuery(traceQuery)
 	assert.Equal(t, expectedStr, actualQuery)
@@ -199,7 +199,7 @@ func TestSpanReader_getQuerySuffix(t *testing.T) {
 	}
 	r := newSpanReader(l, zap.NewNop(), 15*time.Minute)
 
-	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(duration, duration) as duration, count(1) as spansCount from (select traceID, "process.serviceName", operationName, duration from log limit 10000) group by traceID limit 20`
+	expectedStr := `| select traceID, max_by("process.serviceName", duration) as "process.serviceName", max_by(operationName, duration) as operationName, max_by(startTime, duration) as startTime, max_by(duration, duration) as duration from (select traceID, "process.serviceName", operationName, startTime, duration from log limit 10000) group by traceID limit 20`
 	query := r.getQuerySuffix(10000, 20)
 	assert.Equal(t, expectedStr, query)
 }
