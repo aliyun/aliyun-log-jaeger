@@ -159,23 +159,15 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 }
 
 func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64) (int64, error) {
-	queryExp := fmt.Sprintf(`%s: "%s" | select count(1)`, traceIDField, traceID)
-	maxLineNum := int64(0)
-	offset := int64(0)
-	reverse := false
+	queryExp := fmt.Sprintf(`%s: "%s"`, traceIDField, traceID)
 
-	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
-		fmt.Sprintf("Trying to get count of spans for trace %s", traceID))
+	s.logGetHistograms(topic, from, to, queryExp, fmt.Sprintf("Trying to get count of spans for trace %s", traceID))
 
-	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	resp, err := s.logstore.GetHistograms(topic, from, to, queryExp)
 	if err != nil {
 		return 0, errors.Wrap(err, fmt.Sprintf("Failed to get spans count for trace %s", traceID))
 	}
-	num, err := strconv.ParseInt(resp.Logs[0][firstColumn], 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return num, nil
+	return resp.Count, nil
 }
 
 // GetServices returns all services traced by Jaeger, ordered by frequency
@@ -441,6 +433,15 @@ func (s *SpanReader) logGetLogsParameters(topic string, from int64, to int64, qu
 		With(zap.Int64("maxLineNum", maxLineNum)).
 		With(zap.Int64("offset", offset)).
 		With(zap.Bool("reverse", reverse)).
+		Info(msg)
+}
+
+func (s *SpanReader) logGetHistograms(topic string, from int64, to int64, queryExp string, msg string) {
+	s.logger.
+		With(zap.String("topic", topic)).
+		With(zap.Int64("from", from)).
+		With(zap.Int64("to", to)).
+		With(zap.String("queryExp", queryExp)).
 		Info(msg)
 }
 
