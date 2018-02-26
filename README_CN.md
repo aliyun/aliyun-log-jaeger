@@ -226,7 +226,7 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
 
 ### Docker Compose
 
-为了简化部署，我们提供了一个 docker-compose 模板 [aliyun-jaeger-docker-compose.yml](/docker-compose/aliyun-jaeger-docker-compose.yml)。
+为了简化部署，我们提供了一个 docker-compose 模板 [aliyunlog-jaeger-docker-compose.yml](/docker-compose/aliyunlog-jaeger-docker-compose.yml)。
 
 您可以通过如下命令将 jaeger-agent，jaeger-collector，jaeger-query 运行起来
 ```
