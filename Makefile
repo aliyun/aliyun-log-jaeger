@@ -137,17 +137,59 @@ build_ui:
 build-all-in-one-linux: build_ui
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./cmd/standalone/standalone-linux $(BUILD_INFO) ./cmd/standalone/main.go
 
+.PHONY: build-all-linux
+build-all-linux: build_ui
+	make build-agent-linux
+	make build-query-linux
+	make build-collector-linux
+
+.PHONY: build-all-windows
+build-all-windows: build_ui
+	make build-agent-windows
+	make build-query-windows
+	make build-collector-windows
+
+.PHONY: build-all-darwin
+build-all-darwin: build_ui
+	make build-agent-darwin
+	make build-query-darwin
+	make build-collector-darwin
+
 .PHONY: build-agent-linux
 build-agent-linux:
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./cmd/agent/agent-linux $(BUILD_INFO) ./cmd/agent/main.go
+
+.PHONY: build-agent-windows
+build-agent-windows:
+	CGO_ENABLED=0 GOOS=windows installsuffix=cgo go build -o ./cmd/agent/agent-windows $(BUILD_INFO) ./cmd/agent/main.go
+
+.PHONY: build-agent-darwin
+build-agent-darwin:
+	CGO_ENABLED=0 GOOS=darwin installsuffix=cgo go build -o ./cmd/agent/agent-darwin $(BUILD_INFO) ./cmd/agent/main.go
 
 .PHONY: build-query-linux
 build-query-linux:
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./cmd/query/query-linux $(BUILD_INFO) ./cmd/query/main.go
 
+.PHONY: build-query-windows
+build-query-windows:
+	CGO_ENABLED=0 GOOS=windows installsuffix=cgo go build -o ./cmd/query/query-windows $(BUILD_INFO) ./cmd/query/main.go
+
+.PHONY: build-query-darwin
+build-query-darwin:
+	CGO_ENABLED=0 GOOS=darwin installsuffix=cgo go build -o ./cmd/query/query-darwin $(BUILD_INFO) ./cmd/query/main.go
+
 .PHONY: build-collector-linux
 build-collector-linux:
 	CGO_ENABLED=0 GOOS=linux installsuffix=cgo go build -o ./cmd/collector/collector-linux $(BUILD_INFO) ./cmd/collector/main.go
+
+.PHONY: build-collector-windows
+build-collector-windows:
+	CGO_ENABLED=0 GOOS=windows installsuffix=cgo go build -o ./cmd/collector/collector-windows $(BUILD_INFO) ./cmd/collector/main.go
+
+.PHONY: build-collector-darwin
+build-collector-darwin:
+	CGO_ENABLED=0 GOOS=darwin installsuffix=cgo go build -o ./cmd/collector/collector-darwin $(BUILD_INFO) ./cmd/collector/main.go
 
 .PHONY: build-query-collector-linux
 build-query-collector-linux: fmt

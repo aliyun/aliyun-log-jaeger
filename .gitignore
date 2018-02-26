@@ -15,10 +15,16 @@ examples/hotrod/hotrod
 cmd/standalone/standalone-linux
 cmd/agent/agent
 cmd/agent/agent-linux
+cmd/agent/agent-windows
+cmd/agent/agent-darwin
 cmd/collector/collector
 cmd/collector/collector-linux
+cmd/collector/collector-windows
+cmd/collector/collector-darwin
 cmd/query/query
 cmd/query/query-linux
+cmd/query/query-windows
+cmd/query/query-darwin
 cmd/query/jaeger-ui-build/
 crossdock/crossdock-linux
 run-crossdock.log
@@ -26,3 +32,5 @@ plugin/storage/aliyunlog/spanstore/local_reader_test.go
 docker-compose/.env
 .DS_Store
 local_SPL.txt
+README.LOCAL.md
+cmd.local
