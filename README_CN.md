@@ -1,6 +1,29 @@
 # Jaeger on Aliyun Log Service
 
+[![License](https://img.shields.io/badge/license-Apache2.0-blue.svg)](/LICENSE)
+
 [README in English](/README.md)
+
+## 内容
+
+* [简介](#简介)
+* [架构](#架构)
+  * [Jaeger client libraries](#jaeger-client-libraries)
+  * [Agent](#agent)
+  * [Collector](#collector)
+  * [Query](#query)
+  * [日志服务](#日志服务)
+* [构建](#构建)
+  * [Linux](#linux)
+  * [Windows](#windows)
+  * [MacOS](#macos)
+* [配置 &amp; 部署](#配置--部署)
+  * [日志服务](#日志服务-1)
+  * [Agent](#agent-1)
+  * [Collector](#collector-1)
+  * [Query Service &amp; UI](#query-service--ui)
+  * [Docker Compose](#docker-compose)
+* [示例](#示例)
 
 ## 简介
 
@@ -239,3 +262,7 @@ docker-compose -f aliyunlog-jaeger-docker-compose.yml stop
 ```
 
 **注意**：运行该命令之前请替换如下参数为真实值 ${PROJECT}、${ENDPOINT}、${ACCESS_KEY_ID}、${ACCESS_KEY_SECRET}、${SPAN_LOGSTORE}
+
+## 示例
+
+项目提供了一个名为 hotrod 的演示程序，具体内容请参考此[文档](/examples/hotrod/README_CN.md)。
