@@ -59,6 +59,7 @@ Jaeger 后端组件分为 jaeger-agent，jaeger-collector 和 jaeger-query。
 Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-collector。运行 collector 需要指定用于存储 Span 的存储系统类型。如果指定的存储系统类型为日志服务，您还需要提供连接日志服务所需的相关参数。
 
 参数说明如下
+
 | 参数名 | 参数类型 | 描述 |
 | --- | --- | --- |
 | SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log |
@@ -69,6 +70,7 @@ Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-co
 | aliyun-log.logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
 
 默认情况下，collector 暴露如下端口
+
 | 端口号 | 协议 | 功能 |
 | --- | --- | --- |
 | 14267 | TChannel | 用于接收  jaeger-agent 发送来的 jaeger.thrift 格式的 span |
@@ -90,6 +92,7 @@ export SPAN_STORAGE_TYPE=aliyun-log && ./cmd/collector/collector-darwin --aliyun
 jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状态的，通常情况下它运行在 nginx 这样的负载均衡器后面。和 collector 类似，运行 query 同样需要指定后端存储系统类型。如果指定的存储系统类型为日志服务，您还需要提供连接日志服务所需的相关参数。此外，您还需要通过 query.static-files 参数指定 UI 静态文件的位置。
 
 参数说明如下
+
 | 参数名 | 参数类型 | 描述 |
 | --- | --- | --- |
 | SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log |
@@ -101,6 +104,7 @@ jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状
 | query.static-files | 程序参数 | 指定 UI 静态文件的位置 |
 
 默认情况下，query 暴露如下端口
+
 | 端口号 | 协议 | 功能 |
 | --- | --- | --- |
 | 16686 | HTTP | 1. /api/* - API 端口路径 </br> 2. / - Jaeger UI 路径 |
