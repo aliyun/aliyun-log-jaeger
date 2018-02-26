@@ -34,3 +34,4 @@ docker-compose/.env
 local_SPL.txt
 README.LOCAL.md
 cmd.local
+docker.local
