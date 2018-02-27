@@ -17,7 +17,7 @@
 ```
 docker-compose -f aliyunlog-jaeger-docker-compose.yml up
 ```
-git 
+git
 在浏览器中打开 http://127.0.0.1:16686/ 访问 Jaeger UI。
 
 ## 运行 HotROD 应用

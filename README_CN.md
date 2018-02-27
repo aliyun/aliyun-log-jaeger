@@ -265,4 +265,12 @@ docker-compose -f aliyunlog-jaeger-docker-compose.yml stop
 
 ## 示例
 
+查询 trace
+
+![traces.png](/pics/traces.png)
+
+trace 详细信息
+
+![trace_detail.png](/pics/trace_detail.png)
+
 项目提供了一个名为 hotrod 的演示程序，具体内容请参考此[文档](/examples/hotrod/README_CN.md)。
