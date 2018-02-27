@@ -1,7 +1,7 @@
 # Hot R.O.D. - 出行需求
 
 这个演示程序由多个微服务组成，它向我们展示了如何使用 OpenTracing API。它可以独立运行，但如果想要观察 trace 必须运行 jaeger。您可以参考下面的教程：
-  * [云栖文章](/README.LOCAL.md)
+  * [云栖文章](/README.JAEGER.md)
 
 ## 功能
 
@@ -17,7 +17,7 @@
 ```
 docker-compose -f aliyunlog-jaeger-docker-compose.yml up
 ```
-git
+
 在浏览器中打开 http://127.0.0.1:16686/ 访问 Jaeger UI。
 
 ## 运行 HotROD 应用

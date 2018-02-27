@@ -24,6 +24,7 @@
   * [Query Service &amp; UI](#query-service--ui)
   * [Docker Compose](#docker-compose)
 * [示例](#示例)
+* [联系我们](#联系我们)
 
 ## 简介
 
@@ -274,3 +275,9 @@ trace 详细信息
 ![trace_detail.png](/pics/trace_detail.png)
 
 项目提供了一个名为 hotrod 的演示程序，具体内容请参考此[文档](/examples/hotrod/README_CN.md)。
+
+## 联系我们
+
+- [阿里云LOG官方网站](https://www.aliyun.com/product/sls/)
+- [阿里云LOG官方论坛](https://yq.aliyun.com/groups/50)
+- 阿里云官方技术支持：[提交工单](https://workorder.console.aliyun.com/#/ticket/createIndex)
