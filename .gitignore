@@ -35,3 +35,4 @@ local_SPL.txt
 README.LOCAL.md
 cmd.local
 docker.local
+.env.bak
