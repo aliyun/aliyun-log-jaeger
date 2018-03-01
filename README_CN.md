@@ -276,6 +276,14 @@ trace 详细信息
 
 项目提供了一个名为 hotrod 的演示程序，具体内容请参考此[文档](/examples/hotrod/README_CN.md)。
 
+## 错误诊断
+
+如果您发现数据没有写入日志服务，可通过如下步骤进行错误诊断。
+
+* 追踪数据会首先被宿主机上的 jaeger-agent 收集，请检查 jaeger-agent 是否启动成功，5775、6831、6832这几个用于接收数据的 UDP 端口的连通性。
+* 如果 jaeger-agent 启动成功而且相应的端口都可连通，下一步请检查 jaeger-agent 和 jaeger-collector 的连通性。如果jaeger-agent 成功连接 jaeger-collector 会通过标准输出打印出如下信息`"msg":"Connected to peer"`，否则，会持续输出`"msg":"Unable to connect"`，或者在尝试提交数据的时候输出`"msg":"Could not submit jaeger batch","error":"no peers available"`。
+* 如果 jaeger-agent 和 jaeger-collector 连接成功，请检查 jaeger-collector 和日志服务的连接问题。检查 jaeger-collector 的标准输出`"msg":"Failed to write span"`打印的错误原因。
+
 ## 联系我们
 
 - [阿里云LOG官方网站](https://www.aliyun.com/product/sls/)
