@@ -36,6 +36,8 @@ Jaeger on Aliyun Log Service 是基于 Jeager 开发的分布式追踪系统，�
 
 ## 架构
 
+![architecture.png](/pics/architecture.png)
+
 Jaeger 主要由下列模块组成。
 
 ### Jaeger client libraries
