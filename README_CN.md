@@ -38,8 +38,6 @@ Jaeger on Aliyun Log Service 是基于 Jeager 开发的分布式追踪系统，�
 
 ![architecture.png](/pics/architecture.png)
 
-Jaeger 主要由下列模块组成。
-
 ### Jaeger client libraries
 
 Jaeger client 为不同语言实现了符合 [OpenTracing](http://opentracing.io/) 标准的 SDK。应用程序通过 API 写入数据，client library 把 trace 信息按照应用程序指定的采样策略传递给 jaeger-agent。数据使用 Thrift 序列化，通过 UDP 进行通信。
