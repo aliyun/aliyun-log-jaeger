@@ -24,7 +24,9 @@
   * [Query Service &amp; UI](#query-service--ui)
   * [Docker Compose](#docker-compose)
 * [示例](#示例)
+* [错误诊断](#错误诊断)
 * [联系我们](#联系我们)
+* [贡献者](#贡献者)
 
 ## 简介
 
@@ -289,3 +291,9 @@ trace 详细信息
 - [阿里云LOG官方网站](https://www.aliyun.com/product/sls/)
 - [阿里云LOG官方论坛](https://yq.aliyun.com/groups/50)
 - 阿里云官方技术支持：[提交工单](https://workorder.console.aliyun.com/#/ticket/createIndex)
+
+## 贡献者
+
+[@WPH95](https://github.com/WPH95) 对项目作了很大贡献。
+
+感谢 [@WPH95](https://github.com/WPH95) 的杰出工作。
