@@ -28,4 +28,6 @@
 
 [视频链接]()
 
+更多关于应用程序如何使用 OpenTracing API 将数据记录到 Jaeger，可参考链接：http://jaeger.readthedocs.io/en/latest/client_libraries/
+
 ## 技术支持
