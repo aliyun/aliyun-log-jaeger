@@ -1,153 +1,287 @@
-<img align="right" width="290" height="290" src="http://jaeger.readthedocs.io/en/latest/images/jaeger-vector.svg">
+# Jaeger on Aliyun Log Service
 
-[![Build Status][ci-img]][ci] [![Coverage Status][cov-img]][cov] [![ReadTheDocs][doc-img]][doc] [![GoDoc][godoc-img]][godoc] [![Gitter chat][gitter-img]][gitter] [![OpenTracing-1.0][ot-badge]](http://opentracing.io) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fjaegertracing%2Fjaeger.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fjaegertracing%2Fjaeger?ref=badge_shield) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/1273/badge)](https://bestpractices.coreinfrastructure.org/projects/1273)
+[![License](https://img.shields.io/badge/license-Apache2.0-blue.svg)](/LICENSE)
 
-# Jaeger - a Distributed Tracing System
+[中文版README](/README_CN.md)
 
-Jaeger, inspired by [Dapper][dapper] and [OpenZipkin](http://zipkin.io),
-is a distributed tracing system released as open source by [Uber Technologies][ubeross].
-It can be used for monitoring microservices-based distributed systems:
+## Content
 
-  * Distributed context propagation
-  * Distributed transaction monitoring
-  * Root cause analysis
-  * Service dependency analysis
-  * Performance / latency optimization
+* [Introduction](#introduction)
+* [Architecture](#architecture)
+  * [Jaeger client libraries](#jaeger-client-libraries)
+  * [Agent](#agent)
+  * [Collector](#collector)
+  * [Query](#query)
+  * [Aliyun Log Service](#aliyun-log-service)
+* [Building](#building)
+  * [Linux](#linux)
+  * [Windows](#windows)
+  * [MacOS](#macos)
+* [Configure &amp; Deployment](#configure--deployment)
+  * [Aliyun Log Service](#aliyun-log-service-1)
+  * [Agent](#agent-1)
+  * [Collector](#collector-1)
+  * [Query Service &amp; UI](#query-service--ui)
+  * [Docker Compose](#docker-compose)
+* [Example](#example)
+* [Contact Us](#contact-us)
+* [Contributors ](#contributors)
 
-See also:
+## Introduction
 
-  * Jaeger [documentation][doc] for getting started, operational details, and other information.
-  * Blog post [Evolving Distributed Tracing at Uber](https://eng.uber.com/distributed-tracing/).
-  * Tutorial / walkthrough [Take OpenTracing for a HotROD ride][hotrod-tutorial].
+[Jaeger](http://jaeger.readthedocs.io/en/latest/) is an opensource distributed tracing system developed by Uber, it is mainly used for micro service scenarios. It can be used to analyze the invocation process for multiple services, display the method call trace and the method call relations. It is a useful tool for diagnosing performance problems and analyzing system failures.
 
-<img src="https://www.cncf.io/wp-content/uploads/2016/09/logo_cncf.png">
+`Jaeger on Aliyun Log Service` is a distributed tracing system based on Jaeger which supports persist data into [Aliyun Log Service](https://help.aliyun.com/product/28958.html). What's more you can retrieve them from log service through jaeger-query and display them on Jaeger UI.
 
-Jaeger is hosted by the [Cloud Native Computing Foundation](https://cncf.io) (CNCF). If you are a company that wants to help shape the evolution of technologies that are container-packaged, dynamically-scheduled and microservices-oriented, consider joining the CNCF. For details about who's involved and how Jaeger plays a role, read the CNCF [announcement](https://www.cncf.io/blog/2017/09/13/cncf-hosts-jaeger/).
+## Architecture
 
-## Features
+![architecture.png](/pics/architecture.png)
 
-### High Scalability
+### Jaeger client libraries
 
-Jaeger backend is designed to have no single points of failure and to scale with the business needs.
-For example, any given Jaeger installation at Uber is typically processing several billions of spans per day.
+Jaeger clients are language specific implementations of the [OpenTracing API](http://opentracing.io/). They can be used to instrument applications for distributed tracing either manually or with a variety of existing open source frameworks, such as Flask, Dropwizard, gRPC, and many more, that are already integrated with OpenTracing.
 
-### Native support for OpenTracing
+### Agent
 
-Jaeger backend, Web UI, and instrumentation libraries have been designed from ground up to support the OpenTracing standard.
-  * Represent traces as directed acyclic graphs (not just trees) via [span references](https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans)
-  * Support strongly typed span _tags_ and _structured logs_
-  * Support general distributed context propagation mechanism via _baggage_
+A network daemon that listens for spans sent over UDP, which it batches and sends to the collector. It is designed to be deployed to all hosts as an infrastructure component. The agent abstracts the routing and discovery of the collectors away from the client.
 
-### Multiple storage backends
+### Collector
 
-Jaeger supports two popular open source NoSQL databases as trace storage backends: Cassandra 3.4+ and Elasticsearch 5.x/6.x.
-There are ongoing community experiments using other databases, such as ScyllaDB, InfluxDB, Amazon DynamoDB. Jaeger also ships
-with a simple in-memory storage for testing setups.
+The collector receives traces from Jaeger agents and runs them through a processing pipeline. The storage is a pluggable component. `Jaeger on Aliyun Log Service` supports use Aliyun Log Service as the backend storage.
 
-### Modern Web UI
+### Query
 
-Jaeger Web UI is implemented in Javascript using popular open source frameworks like React. Several performance
-improvements have been released in v1.0 to allow the UI to efficiently deal with large volumes of data, and to display
-traces with tens of thousands of spans (e.g. we tried a trace with 80,000 spans).
+Query is a service that retrieves traces from storage and hosts a UI to display them.
 
-### Cloud Native Deployment
+### Aliyun Log Service
 
-Jaeger backend is distributed as a collection of Docker images. The binaries support various configuration methods,
-including command line options, environment variables, and configuration files in multiple formats (yaml, toml, etc.)
-Deployment to Kubernetes clusters is assisted by [Kubernetes templates](https://github.com/jaegertracing/jaeger-kubernetes)
-and a [Helm chart](https://github.com/kubernetes/charts/tree/master/incubator/jaeger).
+The jaeger-collector will persist the received data to the log service. The jaeger-query will retrieve data from the log service.
 
-### Observability
+## Building
 
-All Jaeger backend components expose [Prometheus](https://prometheus.io/) metrics by default (other metrics backends are
-also supported). Logs are written to standard out using the structured logging library [zap](https://github.com/uber-go/zap).
+Jaeger provides docker images that allows you to run various components in a convenient way. However, if you can't use docker in your environment, you can also build binary files that can run on the corresponding platform based on the source code directly.
 
-### Backwards compatibility with Zipkin
+To get started, make sure you clone the Git repository into the correct location `github.com/jaegertracing/jaeger` relative to `$GOPATH`:
+```
+mkdir -p $GOPATH/src/github.com/jaegertracing
+cd $GOPATH/src/github.com/jaegertracing
+git clone https://github.com/aliyun/jaeger.git jaeger
+cd jaeger
+```
 
-Although we recommend instrumenting applications with OpenTracing API and binding to Jaeger client libraries to benefit
-from advanced features not available elsewhere, if your organization has already invested in the instrumentation
-using Zipkin libraries, you do not have to rewrite all that code. Jaeger provides backwards compatibility with Zipkin
-by accepting spans in Zipkin formats (Thrift or JSON v1/v2) over HTTP. Switching from Zipkin backend is just a matter
-of routing the traffic from Zipkin libraries to the Jaeger backend.
+Then install dependencies:
+```
+git submodule update --init --recursive
+make install
+```
+Please use the following commands to build the components that can run on the corresponding platform.
 
-## Related Repositories
+### Linux
 
-### Documentation
+```
+make build-all-linux
+```
 
-  * Published: http://jaeger.readthedocs.io/en/latest/
-  * Source: https://github.com/jaegertracing/documentation
+### Windows
 
-### Instrumentation Libraries
+```
+make build-all-windows
+```
 
- * [Go client](https://github.com/jaegertracing/jaeger-client-go)
- * [Java client](https://github.com/jaegertracing/jaeger-client-java)
- * [Python client](https://github.com/jaegertracing/jaeger-client-python)
- * [Node.js client](https://github.com/jaegertracing/jaeger-client-node)
- * [C++ client](https://github.com/jaegertracing/cpp-client)
+### MacOS
 
-### Deployment
+```
+make build-all-darwin
+```
 
-  * [Kubernetes templates](https://github.com/jaegertracing/jaeger-kubernetes)
-  * [OpenShift templates](https://github.com/jaegertracing/jaeger-openshift)
+## Configure & Deployment
 
-### Components
+### Aliyun Log Service
 
- * [UI](https://github.com/jaegertracing/jaeger-ui)
- * [Data model](https://github.com/jaegertracing/jaeger-idl)
- * [Shared libs](https://github.com/jaegertracing/jaeger-lib)
+Please configure the log service according to the following steps.
 
-## Building From Source
+* Login on [Aliyun Log Service Web Console](https://sls.console.aliyun.com/#/). 
+* Create project, logstore for storing span.
+* Create indexes for the following fields.
 
-See [CONTRIBUTING](./CONTRIBUTING.md).
+| Field Name | Type | Token |
+| --- | --- | --- |
+| traceID | text | N/A |
+| spanID | text | N/A |
+| process.serviceName | text | N/A |
+| operationName | text | N/A |
+| startTime | long | N/A |
+| duration | long | N/A |
 
-## Contributing
+**Note**: if you want to use tags as condition to find traces, you should alse create indexes for the tag fields. For example, the application generate the following tags http.method, http.status_code and you want to use them as condition to find traces, you should create indexes for them.
 
-See [CONTRIBUTING](./CONTRIBUTING.md).
+| Field Name | Type | Token |
+| --- | --- | --- |
+| tags.http.method | text | N/A |
+| tags.http.status_code | text | N/A |
 
-## Project Status Bi-Weekly Meeting
+### Agent
 
-The Jaeger contributors meet bi-weekly, and everyone is welcome to join.
-[Agenda and meeting details here](https://docs.google.com/document/d/1ZuBAwTJvQN7xkWVvEFXj5WU9_JmS5TPiNbxCJSvPqX0/).
+Jaeger client libraries expect jaeger-agent process to run locally on each host. The agent exposes the following ports:
 
-## Roadmap
+| Port | Protocol | Function |
+| --- | --- | --- |
+| 5775 | UDP | accept zipkin.thrift over compact thrift protocol |
+| 6831 | UDP | accept jaeger.thrift over compact thrift protocol |
+| 6832 | UDP | accept jaeger.thrift over binary thrift protocol |
+| 5778 | HTTP | serve configs, sampling strategies |
 
-See http://jaeger.readthedocs.io/en/latest/roadmap/
+If you have already installed docker, you can run agent as follows:
+```
+docker run \
+  --rm \
+  -p5775:5775/udp \
+  -p6831:6831/udp \
+  -p6832:6832/udp \
+  -p5778:5778/tcp \
+  jaegertracing/jaeger-agent --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
+```
 
-## Questions, Discussions, Bug Reports
+If you have already built the corresponding binary file, take macOS as an example, you can run agent as follows:
+```
+./cmd/agent/agent-darwin --collector.host-port=localhost:14267
+```
 
-Reach project contributors via these channels:
+### Collector
 
- * [jaeger-tracing mail group](https://groups.google.com/forum/#!forum/jaeger-tracing)
- * [Gitter chat room](https://gitter.im/jaegertracing/Lobby)
- * [Github issues](https://github.com/jaegertracing/jaeger/issues)
+The collectors are stateless and thus many instances of jaeger-collector can be run in parallel. You need to specify the storage type used to store span. If you specify Aliyun Log Service as your backend storage, you also need to provide the relevant parameters for the log service.
 
-## Adopters
+Parameter Description
 
-Jaeger as a product consists of multiple components. We want to support different types of users,
-whether they are only using our instrumentation libraries or full end to end Jaeger installation,
-whether it runs in production or you use it to troubleshoot issues in development.
+| Parameter Name | Type | Description |
+| --- | --- | --- |
+| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span |
+| aliyun-log.project | program argument | specify the project used to store span |
+| aliyun-log.endpoint | program argument | specify the endpoint for your project |
+| aliyun-log.access-key-id | program argument | specify the account information for your log services |
+| aliyun-log.access-key-secret | program argument | specify the account information for your log services |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span |
 
-Please see [ADOPTERS.md](./ADOPTERS.md) for some of the organizations using Jaeger today.
-If you would like to add your organization to the list, please comment on our
-[survey issue](https://github.com/jaegertracing/jaeger/issues/207).
+At default settings the collector exposes the following ports:
 
-## License
+| Port | Protocol | Function |
+| --- | --- | --- |
+| 14267 | TChannel | used by **jaeger-agent** to send spans in jaeger.thrift format |
+| 14268 | HTTP | can accept spans directly from clients in jaeger.thrift format |
+| 9411 | HTTP | can accept Zipkin spans in JSON or Thrift (disabled by default) |
 
-[Apache 2.0 License](./LICENSE).
+If you have already installed docker, you can run collector as follows:
+```
+docker run \
+  -it --rm \
+  -p14267:14267 -p14268:14268 -p9411:9411 \
+  -e SPAN_STORAGE_TYPE=aliyun-log \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.0.1 \
+  /go/bin/collector-linux \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+```
 
-[doc-img]: https://readthedocs.org/projects/jaeger/badge/?version=latest
-[doc]: http://jaeger.readthedocs.org/en/latest/
-[godoc-img]: https://godoc.org/github.com/jaegertracing/jaeger?status.svg
-[godoc]: https://godoc.org/github.com/jaegertracing/jaeger
-[ci-img]: https://travis-ci.org/jaegertracing/jaeger.svg?branch=master
-[ci]: https://travis-ci.org/jaegertracing/jaeger
-[cov-img]: https://coveralls.io/repos/jaegertracing/jaeger/badge.svg?branch=master
-[cov]: https://coveralls.io/github/jaegertracing/jaeger?branch=master
-[dapper]: https://research.google.com/pubs/pub36356.html
-[ubeross]: http://uber.github.io
-[ot-badge]: https://img.shields.io/badge/OpenTracing--1.x-inside-blue.svg
-[hotrod-tutorial]: https://medium.com/@YuriShkuro/take-opentracing-for-a-hotrod-ride-f6e3141f7941
-[gitter]: https://gitter.im/jaegertracing/Lobby
-[gitter-img]: http://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg
+If you have already built the corresponding binary file, take macOS as an example, you can run collector as follows:
+```
+export SPAN_STORAGE_TYPE=aliyun-log && \
+  ./cmd/collector/collector-darwin \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+```
 
-[//]: # (md-to-godoc-ignore)
+### Query Service & UI
+
+`jaeger-query` serves the API endpoints and a React/Javascript UI. The service is stateless and is typically run behind a load balancer, e.g. nginx. Similar to collector, if you specify Aliyun Log Service as your backend storage, you also need to provide the relevant parameters for the log service. In addition, you need to specify the location of the UI static file by the parameter `query.static-files`.
+
+Parameters Description
+
+| Parameter Name | Type | Description |
+| --- | --- | --- |
+| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span |
+| aliyun-log.project | program argument | specify the project used to store span |
+| aliyun-log.endpoint | program argument | specify the endpoint for your project |
+| aliyun-log.access-key-id | program argument | specify the account information for your log services |
+| aliyun-log.access-key-secret | program argument | specify the account information for your log services |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span |
+| query.static-files | program argument | Specify the location of the UI static files |
+
+At default settings the query service exposes the following port(s):
+
+| Port | Protocol | Function |
+| --- | --- | --- |
+| 16686 | HTTP | **/api/*** endpoints and Jaeger UI at / |
+
+If you have already installed docker, you can run query as follows:
+```
+docker run \
+  -it --rm \
+  -p16686:16686 \
+  -e SPAN_STORAGE_TYPE=aliyun-log \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.0.1 \
+  /go/bin/query-linux \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --query.static-files=/go/jaeger-ui/
+```
+
+If you have already built the corresponding binary file, take macOS as an example, you can run query as follows:
+```
+export SPAN_STORAGE_TYPE=aliyun-log && \
+  ./cmd/query/query-darwin \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --query.static-files=./jaeger-ui-build/build/
+```
+
+### Docker Compose
+
+To simplify the deployment, we have provided a docker-compose template [aliyunlog-jaeger-docker-compose.yml](/docker-compose/aliyunlog-jaeger-docker-compose.yml).
+
+You can start `jaeger-agent`, `jaeger-collector`, and `jaeger-query` through the following commands
+```
+docker-compose -f aliyunlog-jaeger-docker-compose.yml up
+```
+
+You can stop `jaeger-agent`, `jaeger-collector`, and `jaeger-query` through the following commands
+```
+docker-compose -f aliyunlog-jaeger-docker-compose.yml stop
+```
+
+**Note**: please remember to replace the following parameters with the real value before you run the above commands.
+
+
+## Example
+
+Find traces
+
+![traces.png](/pics/traces.png)
+
+Display detailed information for trace
+
+![trace_detail.png](/pics/trace_detail.png)
+
+This project provide a demo applicatio named hotrod. Please refer to this [doc](/examples/hotrod/README.md).
+
+## Contact Us
+- [Alicloud Log Service homepage](https://www.alibabacloud.com/product/log-service)
+- [Alicloud Log Service doc](https://www.alibabacloud.com/help/product/28958.htm)
+- [Alicloud Log Servic official forum](https://yq.aliyun.com/groups/50)
+- Alicloud Log Servic official technical support: [submit tickets](https://workorder.console.aliyun.com/#/ticket/createIndex)
+
+## Contributors
+[@WPH95](https://github.com/WPH95) made a great contribution to this project.
+
+Thanks for the excellent work by [@WPH95](https://github.com/WPH95)
