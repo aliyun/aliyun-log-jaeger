@@ -26,7 +26,7 @@ To get started, make sure you clone the Git repository into the correct location
 ```
 mkdir -p $GOPATH/src/github.com/jaegertracing
 cd $GOPATH/src/github.com/jaegertracing
-git clone git@github.com:jaegertracing/jaeger.git jaeger
+git clone git@github.com:jaegertracing/aliyun-log-jaeger.git jaeger
 cd jaeger
 ```
 
