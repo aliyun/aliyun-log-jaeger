@@ -27,7 +27,7 @@ docker-compose -f aliyunlog-jaeger-docker-compose.yml up
 ```
 mkdir -p $GOPATH/src/github.com/jaegertracing
 cd $GOPATH/src/github.com/jaegertracing
-git clone https://github.com/aliyun/jaeger.git jaeger
+git clone https://github.com/aliyun/aliyun-log-jaeger.git jaeger
 cd jaeger
 make install
 cd examples/hotrod

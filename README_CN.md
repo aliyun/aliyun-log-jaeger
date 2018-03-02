@@ -66,7 +66,7 @@ Jaeger 提供了 docker 镜像能够让您方便地运行各个组件。但是�
 ```
 mkdir -p $GOPATH/src/github.com/jaegertracing
 cd $GOPATH/src/github.com/jaegertracing
-git clone https://github.com/aliyun/jaeger.git jaeger
+git clone https://github.com/aliyun/aliyun-log-jaeger.git jaeger
 cd jaeger
 ```
 
