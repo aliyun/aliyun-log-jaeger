@@ -28,7 +28,7 @@
 * 如何定位应用的性能瓶颈
 * 应用程序如何使用 OpenTracing API
 
-[视频链接]()
+<video autoplay="autoplay" src="http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080306643.mp4" controls="true"></video>
 
 更多关于应用程序如何使用 OpenTracing API 将数据记录到 Jaeger，可参考链接：http://jaeger.readthedocs.io/en/latest/client_libraries/
 
