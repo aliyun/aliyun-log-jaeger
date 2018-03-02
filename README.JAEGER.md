@@ -28,7 +28,7 @@
 * 如何定位应用的性能瓶颈
 * 应用程序如何使用 OpenTracing API
 
-<video autoplay="autoplay" src="http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080306643.mp4" controls="true"></video>
+<video autoplay="autoplay" src="http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080498316.mp4" controls="true"></video>
 
 [![Watch the video](/pics/jaeger_video.png)](http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080306643.mp4)
 
