@@ -8,7 +8,6 @@
 
 为了解决这些问题出现了许多分布式追踪系统，包括 Dapper，Zipkin，HTrace，EagleEye 等。但不同系统的 API 并不兼容，这就导致了如果您希望将追踪系统由 Zipkin 替换为 HTrace，往往会带来较大改动。
 
-
 ## OpenTracing
 为了解决不同的分布式追踪系统 API 不兼容的问题，诞生了 [OpenTracing](http://opentracing.io/) 规范。
 OpenTracing 通过提供平台无关、厂商无关的API，使得开发人员能够方便的添加（或更换）追踪系统的实现。OpenTracing 正在为全球的分布式追踪，提供统一的概念和数据标准。
