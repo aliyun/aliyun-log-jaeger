@@ -13,7 +13,8 @@
 OpenTracing 通过提供平台无关、厂商无关的API，使得开发人员能够方便的添加（或更换）追踪系统的实现。OpenTracing 正在为全球的分布式追踪，提供统一的概念和数据标准。
 
 OpenTracing是一个轻量级的标准化层，它位于**应用程序/类库**和**追踪或日志分析程序**之间，如下图所示。
-![opentracing.png](/pics/architecture.png)
+
+![opentracing.png](/pics/opentracing.png)
 
 ### OpenTracing 数据模型
 一个 trace 代表了一个事务或者流程在（分布式）系统中的执行过程。在 OpenTracing 标准中，trace 是多个 span 组成的一个有向无环图（DAG），每一个 span 代表 trace 中被命名并计时的连续性的执行片段。
