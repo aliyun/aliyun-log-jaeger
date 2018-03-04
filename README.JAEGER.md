@@ -77,16 +77,34 @@ OpenTracing是一个轻量级的标准化层，它位于**应用程序/类库**�
 * 如何配置日志服务
 * 如何通过 docker-compose 运行 Jaeger
 * 如何运行 HotROD
-* 如何根据查询条件检索特定的 trace
-* 如何查看 trace 的详细信息
-* 如何定位应用的性能瓶颈
+* 通过 Jaeger UI 如何检索特定的 trace
+* 通过 Jaeger UI 如何查看 trace 的详细信息
+* 通过 Jaeger UI 如何定位应用的性能瓶颈
+* 通过日志服务管理控制台，如何定位应用的性能瓶颈
 * 应用程序如何使用 OpenTracing API
 
 <video src="http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080498316.mp4" controls="true"></video>
 
 [![Watch the video](/pics/jaeger_video.png)](http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080498316.mp4)
 
-更多关于应用程序如何使用 OpenTracing API 将数据记录到 Jaeger，可参考链接：http://jaeger.readthedocs.io/en/latest/client_libraries/
+视频中用到的查询分析样例
+1. 以分钟为单位统计 `frontend` 服务的 `HTTP GET /dispatch` 操作的平均延迟以及请求个数。
+```
+operationName: "HTTP GET: /customer" |
+select from_unixtime( __time__ - __time__ % 60) as time,
+truncate(avg(duration)/1000/1000) as avg_duration_ms,
+count(1) as count
+group by __time__ - __time__ % 60 order by time desc limit 60
+```
+
+2. 比较两条 trace 各个操作的耗时
+```
+traceID: "trace1" or traceID: "trace2" |
+select operationName,
+(max(duration)-min(duration))/1000/1000 as duration_diff_ms
+group by operationName
+order by duration_diff_ms desc
+```
 
 ## 参考资料
 * Jaeger on Aliyun Log Service - https://github.com/aliyun/jaeger
