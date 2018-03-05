@@ -123,7 +123,7 @@ OpenTracing中的**Trace**（调用链）通过归属于此调用链的**Span**�
 更多关于 OpenTracing 数据模型的知识，请参考 [OpenTracing语义标准](https://github.com/opentracing-contrib/opentracing-specification-zh/blob/master/specification.md)。
 
 ### OpenTracing 实现
-这篇[文档](http://opentracing.io/documentation/pages/supported-tracers.html)列出了所有 OpenTracing 实现.在这些实现中，比较流行的为 [Jaeger](http://jaeger.readthedocs.io/en/latest/) 和 [Zipkin](https://zipkin.io/)。
+这篇[文档](http://opentracing.io/documentation/pages/supported-tracers.html)列出了所有 OpenTracing 实现。在这些实现中，比较流行的为 [Jaeger](http://jaeger.readthedocs.io/en/latest/) 和 [Zipkin](https://zipkin.io/)。
 
 ## Jaeger
 [Jaeger](http://jaeger.readthedocs.io/en/latest/) 是 Uber 推出的一款开源分布式追踪系统，兼容 OpenTracing API。
