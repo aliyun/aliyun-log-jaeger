@@ -90,9 +90,10 @@ OpenTracing 是一个轻量级的标准化层，它位于**应用程序/类库**
 
 ![architecture.png](/pics/architecture.png)
 
-### 功能优势
+### 优势
 * 原生 Jaeger 仅支持将数据持久化到 cassandra 和 elasticsearch 中，用户需要自行维护后端存储系统的稳定性，调节存储容量。Jaeger on Aliyun Log Service 借助阿里云日志服务的海量数据处理能力，让您享受 Jaeger 在分布式追踪领域给您带来便捷的同时无需过多关注后端存储系统的问题。
 * Jaeger UI 部分仅提供查询、展示 trace 的功能，对分析问题、排查问题支持不足。使用 Jaeger on Aliyun Log Service，您可以借助日志服务强大的[查询分析](https://help.aliyun.com/document_detail/43772.html)能力，助您更快分析出系统中存在的问题。
+* 相对于 Jaeger 使用 elasticsearch 作为后端存储，使用日志服务的好处是支持按量付费，成本仅为 elasticsearch 的13%。参阅[自建ELK vs 日志服务(SLS)全方位对比](https://yq.aliyun.com/articles/213693)
 
 ### 配置步骤
 参阅：https://github.com/aliyun/jaeger/blob/master/README_CN.md
@@ -101,14 +102,14 @@ OpenTracing 是一个轻量级的标准化层，它位于**应用程序/类库**
 [HotROD](https://github.com/aliyun/jaeger/tree/master/examples/hotrod) 是由多个微服务组成的应用程序，它使用了 OpenTracing API 记录 trace 信息。
 
 下面通过一段视频向您展示如何使用 Jaeger on Aliyun Log Service 诊断 HotROD 出现的问题。视频包含以下内容：
-* 如何配置日志服务
-* 如何通过 docker-compose 运行 Jaeger
-* 如何运行 HotROD
-* 通过 Jaeger UI 如何检索特定的 trace
-* 通过 Jaeger UI 如何查看 trace 的详细信息
-* 通过 Jaeger UI 如何定位应用的性能瓶颈
-* 通过日志服务管理控制台，如何定位应用的性能瓶颈
-* 应用程序如何使用 OpenTracing API
+1. 如何配置日志服务
+2. 如何通过 docker-compose 运行 Jaeger
+3. 如何运行 HotROD
+4. 通过 Jaeger UI 如何检索特定的 trace
+5. 通过 Jaeger UI 如何查看 trace 的详细信息
+6. 通过 Jaeger UI 如何定位应用的性能瓶颈
+7. 通过日志服务管理控制台，如何定位应用的性能瓶颈
+8. 应用程序如何使用 OpenTracing API
 
 <video src="http://cloud.video.taobao.com//play/u/2143829456/p/1/e/6/t/1/50080498316.mp4" controls="true"></video>
 
@@ -133,10 +134,13 @@ group by operationName
 order by duration_diff_ms desc
 ```
 
-3. 统计延迟大于 1.5s 的 trace 的 IP 分布
+3. 统计延迟大于 1.5s 的 trace 的 IP 情况
 ```
 process.serviceName: "frontend" and operationName: "HTTP GET /dispatch" and duration > 1500000000 |
-select ip_to_province("process.tags.ip") as province ,count(1) as pv group by province order by pv desc
+select "process.tags.ip" as IP,
+truncate(avg(duration)/1000/1000) as avg_duration_ms,
+count(1) as count
+group by "process.tags.ip"
 ```
 
 ## 参考资料
@@ -144,5 +148,8 @@ select ip_to_province("process.tags.ip") as province ,count(1) as pv group by pr
 * OpenTracing 中文文档 - https://wu-sheng.gitbooks.io/opentracing-io/content/
 * Jaeger - http://jaeger.readthedocs.io/en/latest/getting_started/
 * OpenTracing tutorial - https://github.com/yurishkuro/opentracing-tutorial
+
+## 特别感谢
+Jaeger on Aliyun Log Service 是由阿里云团队和共创平台上的贡献者共同完成的。感谢 [@WPH95](https://github.com/WPH95) 的杰出工作。
 
 ## 技术支持
