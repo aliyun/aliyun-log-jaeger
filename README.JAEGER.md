@@ -22,7 +22,7 @@
 * 鹰眼(taobao)
 * X-ray(aws)
 
-分布式追踪系统发展很快，种类非常多，但核心步骤一般有三个：代码埋点，数据存储、查询展示。由于需要侵入用户代码，并且不同系统的 API 并不兼容，这就导致了如果您希望切换追踪系统，往往会带来较大改动。
+分布式追踪系统发展很快，种类繁多，但核心步骤一般有三个：代码埋点，数据存储、查询展示。由于需要侵入用户代码，并且不同系统的 API 并不兼容，这就导致了如果您希望切换追踪系统，往往会带来较大改动。
 
 ## OpenTracing
 为了解决不同的分布式追踪系统 API 不兼容的问题，诞生了 [OpenTracing](http://opentracing.io/) 规范。
@@ -117,7 +117,7 @@ OpenTracing 是一个轻量级的标准化层，它位于**应用程序/类库**
 视频中用到的查询分析样例
 1. 以分钟为单位统计 `frontend` 服务的 `HTTP GET /dispatch` 操作的平均延迟以及请求个数。
 ```
-operationName: "HTTP GET: /customer" |
+process.serviceName: "frontend" and operationName: "HTTP GET /dispatch" |
 select from_unixtime( __time__ - __time__ % 60) as time,
 truncate(avg(duration)/1000/1000) as avg_duration_ms,
 count(1) as count
@@ -131,6 +131,12 @@ select operationName,
 (max(duration)-min(duration))/1000/1000 as duration_diff_ms
 group by operationName
 order by duration_diff_ms desc
+```
+
+3. 统计延迟大于 1.5s 的 trace 的 IP 分布
+```
+process.serviceName: "frontend" and operationName: "HTTP GET /dispatch" and duration > 1500000000 |
+select ip_to_province("process.tags.ip") as province ,count(1) as pv group by province order by pv desc
 ```
 
 ## 参考资料
