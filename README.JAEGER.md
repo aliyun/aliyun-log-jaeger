@@ -62,13 +62,13 @@ OpenTracing 是一个轻量级的标准化层，它位于**应用程序/类库**
 * OpenTracing 通过提供平台无关、厂商无关的 API，使得开发人员能够方便的添加（或更换）追踪系统的实现。
 
 ### OpenTracing 数据模型
-OpenTracing中的**Trace**（调用链）通过归属于此调用链的**Span**来隐性的定义。
-特别说明，一条**Trace**（调用链）可以被认为是一个由多个**Span**组成的有向无环图（DAG图），**Span**与**Span**的关系被命名为**References**。
+OpenTracing 中的 **Trace**（调用链）通过归属于此调用链的 **Span** 来隐性的定义。
+特别说明，一条 **Trace**（调用链）可以被认为是一个由多个 **Span** 组成的有向无环图（DAG图），**Span** 与 **Span** 的关系被命名为 **References**。
 
-例如：下面的示例**Trace**就是由8个**Span**组成：
+例如：下面的示例 **Trace** 就是由8个 **Span** 组成：
 
 ~~~
-单个Trace中，span间的因果关系
+单个 Trace 中，span 间的因果关系
 
 
         [Span A]  ←←←(the root span)
@@ -87,10 +87,10 @@ OpenTracing中的**Trace**（调用链）通过归属于此调用链的**Span**�
 
 ~~~
 
-有些时候，使用下面这种，基于时间轴的时序图可以更好的展现**Trace**（调用链）：
+有些时候，使用下面这种，基于时间轴的时序图可以更好的展现 **Trace**（调用链）：
 
 ~~~
-单个Trace中，span间的时间关系
+单个 Trace 中，span 间的时间关系
 
 
 ––|–––––––|–––––––|–––––––|–––––––|–––––––|–––––––|–––––––|–> time
@@ -102,23 +102,23 @@ OpenTracing中的**Trace**（调用链）通过归属于此调用链的**Span**�
          [Span E·······]        [Span F··] [Span G··] [Span H··]
 ~~~
 
-每个**Span**包含以下的状态:（译者注：由于这些状态会反映在OpenTracing API中，所以会保留部分英文说明）
+每个 **Span** 包含以下的状态:（译者注：由于这些状态会反映在 OpenTracing API 中，所以会保留部分英文说明）
 
 - An operation name，操作名称
 - A start timestamp，起始时间
 - A finish timestamp，结束时间
-- **Span Tag**，一组键值对构成的Span标签集合。键值对中，键必须为string，值可以是字符串，布尔，或者数字类型。
-- **Span Log**，一组span的日志集合。
-  每次log操作包含一个键值对，以及一个时间戳。
-  键值对中，键必须为string，值可以是任意类型。
-  但是需要注意，不是所有的支持OpenTracing的Tracer,都需要支持所有的值类型。
-- **SpanContext**，Span上下文对象 (下面会详细说明)
-- **References**(Span间关系)，相关的零个或者多个Span（**Span**间通过**SpanContext**建立这种关系）
+- **Span Tag**，一组键值对构成的 Span 标签集合。键值对中，键必须为 string，值可以是字符串，布尔，或者数字类型。
+- **Span Log**，一组 span 的日志集合。
+  每次 log 操作包含一个键值对，以及一个时间戳。
+  键值对中，键必须为 string，值可以是任意类型。
+  但是需要注意，不是所有的支持 OpenTracing 的 Tracer，都需要支持所有的值类型。
+- **SpanContext**，Span 上下文对象 (下面会详细说明)
+- **References**(Span间关系)，相关的零个或者多个 Span（**Span** 间通过 **SpanContext** 建立这种关系）
 
-每一个**SpanContext**包含以下状态：
+每一个 **SpanContext** 包含以下状态：
 
-- 任何一个OpenTracing的实现，都需要将当前调用链的状态（例如：trace和span的id），依赖一个独特的Span去跨进程边界传输
-- **Baggage Items**，Trace的随行数据，是一个键值对集合，它存在于trace中，也需要跨进程边界传输
+- 任何一个 OpenTracing 的实现，都需要将当前调用链的状态（例如：trace 和 span 的 id），依赖一个独特的 Span 去跨进程边界传输
+- **Baggage Items**，Trace 的随行数据，是一个键值对集合，它存在于 trace 中，也需要跨进程边界传输
 
 更多关于 OpenTracing 数据模型的知识，请参考 [OpenTracing语义标准](https://github.com/opentracing-contrib/opentracing-specification-zh/blob/master/specification.md)。
 
