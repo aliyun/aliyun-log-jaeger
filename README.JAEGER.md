@@ -22,7 +22,7 @@ Logging，Metrics 和 Tracing 有各自专注的部分。
 
 通过上述信息，我们可以对已有系统进行分类。例如，Zipkin 专注于 tracing 领域；Prometheus 开始专注于 metrics，随着时间推移可能会集成更多的 tracing 功能，但不太可能深入 logging 领域； 阿里云日志服务开始专注于 logging 部分，但同时也不断地集成其他领域的特性到系统中来。
 
-下面我们重点介绍下 tracing。
+关于三者关系的更详细信息可参考 [Metrics, tracing, and logging](http://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html)。下面我们重点介绍下 tracing。
 
 ## Tracing 的诞生
 Tracing 是在90年代就已出现的技术。但真正让该领域流行起来的还是源于 Google 的一篇论文"[Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google.com/pubs/pub36356.html)"，而另一篇论文"[Uncertainty in Aggregate Estimates from Sampled Distributed Traces](https://research.google.com/pubs/pub40378.html)"中则包含关于采样的更详细分析。论文发表后一批优秀的 Tracing 软件孕育而生，比较流行的有：
