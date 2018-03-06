@@ -8,13 +8,24 @@
 * 应用架构开始从单体系统逐步转变微服务，其中的业务逻辑随之而来就会变成微服务之间调用与请求。
 * 资源角度来看，传统服务器这个物理单位也逐渐淡化，变成了看不见摸不到的虚拟资源模式。
 
-从以上两个变化可以看到这种弹性、标准化的架构背后，一些在单机环境下容易处理的问题变得越来越困难：
-* 如何清晰地展示各服务间的调用关系？
-* 一次请求的流量从哪里来，最终落到哪个服务中去？
-* 如何找出系统的性能瓶颈？
+从以上两个变化可以看到这种弹性、标准化的架构背后，原先运维与诊断的需求也变得越来越复杂。为了应对这种变化趋势，诞生一系列面向 DevOps 的诊断与分析系统，包括集中式日志系统（Logging），集中式度量系统（Metrics）和分布式追踪系统（Tracing）。
+
+## Logging，Metrics 和 Tracing
+Logging，Metrics 和 Tracing 有各自专注的部分。
+* Logging - 用于记录离散的事件。例如，应用程序的调试信息或错误信息。它是我们诊断问题的依据。
+* Metrics - 用于记录可聚合的数据。例如，队列的当前深度可被定义为一个度量值，在元素入队或出队时被更新；HTTP 请求个数可被定义为一个计数器，新请求到来时进行累加。
+* Tracing - 用于记录请求范围内的信息。例如，一次远程方法调用的执行过程和耗时。它是我们排查系统性能问题的利器。
+
+这三者也有相互重叠的部分，如下图所示。
+
+![logging_metrics_tracing.png](/pics/logging_metrics_tracing.png)
+
+通过上述信息，我们可以对已有系统进行分类。例如，Zipkin 专注于 tracing 领域；Prometheus 开始专注于 metrics，随着时间推移可能会集成更多的 tracing 功能，但不太可能深入 logging 领域； 阿里云日志服务开始专注于 logging 部分，但同时也不断地集成其他领域的特性到系统中来。
+
+下面我们重点介绍下 tracing。
 
 ## Tracing 的诞生
-在 DevOps 中有一个重要的分支叫做 Tracing（分布式追踪），Tracing 是在90年代就已出现的技术。但真正让该领域流行起来的还是源于 Google 的一篇论文"[Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google.com/pubs/pub36356.html)"，而另一篇论文"[Uncertainty in Aggregate Estimates from Sampled Distributed Traces](https://research.google.com/pubs/pub40378.html)"中则包含关于采样的更详细分析。论文发表后一批优秀的 Tracing 软件孕育而生，比较流行的有：
+Tracing 是在90年代就已出现的技术。但真正让该领域流行起来的还是源于 Google 的一篇论文"[Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google.com/pubs/pub36356.html)"，而另一篇论文"[Uncertainty in Aggregate Estimates from Sampled Distributed Traces](https://research.google.com/pubs/pub40378.html)"中则包含关于采样的更详细分析。论文发表后一批优秀的 Tracing 软件孕育而生，比较流行的有：
 * Dapper(Google) : 各 tracer 的基础
 * StackDriver Trace (Google)
 * Zipkin(twitter)
@@ -206,6 +217,7 @@ group by "process.tags.ip"
 * OpenTracing 中文文档 - https://wu-sheng.gitbooks.io/opentracing-io/content/
 * Jaeger - http://jaeger.readthedocs.io/en/latest/getting_started/
 * OpenTracing tutorial - https://github.com/yurishkuro/opentracing-tutorial
+* http://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html
 
 ## 特别感谢
 Jaeger on Aliyun Log Service 是由阿里云团队和共创平台上的贡献者共同完成的。感谢 [@WPH95](https://github.com/WPH95) 的杰出工作。
