@@ -20,7 +20,7 @@ Logging，Metrics 和 Tracing 有各自专注的部分。
 
 ![logging_metrics_tracing.png](/pics/logging_metrics_tracing.png)
 
-通过上述信息，我们可以对已有系统进行分类。例如，Zipkin 专注于 tracing 领域；Prometheus 开始专注于 metrics，随着时间推移可能会集成更多的 tracing 功能，但不太可能深入 logging 领域； 阿里云日志服务开始专注于 logging 部分，但同时也不断地集成其他领域的特性到系统中来。
+通过上述信息，我们可以对已有系统进行分类。例如，Zipkin 专注于 tracing 领域；Prometheus 开始专注于 metrics，随着时间推移可能会集成更多的 tracing 功能，但不太可能深入 logging 领域； ELK，阿里云日志服务这样的系统开始专注于 logging 部分，但同时也不断地集成其他领域的特性到系统中来，正向上图中的圆心靠近。
 
 关于三者关系的更详细信息可参考 [Metrics, tracing, and logging](http://peter.bourgon.org/blog/2017/02/21/metrics-tracing-and-logging.html)。下面我们重点介绍下 tracing。
 
