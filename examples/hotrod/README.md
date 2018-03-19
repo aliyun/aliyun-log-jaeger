@@ -5,7 +5,7 @@
 This is a demo application that consists of several microservices and illustrates
 the use of the OpenTracing API. It can be run standalone, but requires Jaeger backend
 to view the traces. A tutorial / walkthough is available:
-* [yunqi article](/README.JAEGER.md)
+* [yunqi article](https://yq.aliyun.com/articles/514488)
 
 ## Features
 
