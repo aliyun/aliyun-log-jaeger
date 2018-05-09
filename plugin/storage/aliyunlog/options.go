@@ -23,12 +23,13 @@ import (
 )
 
 const (
-	suffixProject          = ".project"
-	suffixEndpoint         = ".endpoint"
-	suffixAccessKeyID      = ".access-key-id"
-	suffixAccessKeySecret  = ".access-key-secret"
-	suffixSpanLogstore     = ".span-logstore"
-	suffixMaxQueryDuration = ".max-query-duration"
+	suffixProject            = ".project"
+	suffixEndpoint           = ".endpoint"
+	suffixAccessKeyID        = ".access-key-id"
+	suffixAccessKeySecret    = ".access-key-secret"
+	suffixSpanLogstore       = ".span-logstore"
+	suffixDependencyLogstore = ".dependency-logstore"
+	suffixMaxQueryDuration   = ".max-query-duration"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -100,6 +101,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixSpanLogstore,
 		nsConfig.SpanLogstore,
 		"The logstore to save span data in AliCloud Log Service")
+	flagSet.String(
+		nsConfig.namespace+suffixDependencyLogstore,
+		nsConfig.DependencyLogstore,
+		"The logstore to save dependency data in AliCloud Log Service")
 	flagSet.Duration(
 		nsConfig.namespace+suffixMaxQueryDuration,
 		nsConfig.MaxQueryDuration,
@@ -120,6 +125,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.AccessKeyID = v.GetString(cfg.namespace + suffixAccessKeyID)
 	cfg.AccessKeySecret = v.GetString(cfg.namespace + suffixAccessKeySecret)
 	cfg.SpanLogstore = v.GetString(cfg.namespace + suffixSpanLogstore)
+	cfg.DependencyLogstore = v.GetString(cfg.namespace + suffixDependencyLogstore)
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 }
 

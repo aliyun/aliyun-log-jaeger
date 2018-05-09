@@ -103,8 +103,8 @@ make build-all-darwin
 您需要按照以下步骤配置日志服务。
 
 * 登录 [日志服务管理控制台](https://sls.console.aliyun.com/#/)。
-* 创建用于存储 span 的 project、logstore。
-* 为下列字段创建索引。
+* 创建 project，创建用于存储 span 的 logstore 和用于存储 dependency 的 logstore。
+* 在存储 span 的 logstore 中为下列字段创建索引。
 
 | 字段名 | 类型 | 分词符 |
 | --- | --- | --- |
@@ -165,6 +165,7 @@ Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-co
 | aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
 | aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
 | aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
+| aliyun-log.dependency-logstore | 程序参数 | 指定用于存储 Dependency 的 Logstore |
 
 默认情况下，collector 暴露如下端口
 
@@ -186,7 +187,8 @@ docker run \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE>
 ```
 
 如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 collector
@@ -197,7 +199,8 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE>
 ```
 
 ### Query Service & UI
@@ -214,6 +217,7 @@ jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状
 | aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
 | aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
 | aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
+| aliyun-log.dependency-logstore | 程序参数 | 指定用于存储 Dependency 的 Logstore |
 | query.static-files | 程序参数 | 指定 UI 静态文件的位置 |
 
 默认情况下，query 暴露如下端口
@@ -235,6 +239,7 @@ docker run \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE> \
   --query.static-files=/go/jaeger-ui/
 ```
 
@@ -247,6 +252,7 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE> \
   --query.static-files=./jaeger-ui-build/build/
 ```
 
@@ -264,7 +270,7 @@ docker-compose -f aliyunlog-jaeger-docker-compose.yml up
 docker-compose -f aliyunlog-jaeger-docker-compose.yml stop
 ```
 
-**注意**：运行该命令之前请替换如下参数为真实值 ${PROJECT}、${ENDPOINT}、${ACCESS_KEY_ID}、${ACCESS_KEY_SECRET}、${SPAN_LOGSTORE}
+**注意**：运行该命令之前请替换如下参数为真实值 ${PROJECT}、${ENDPOINT}、${ACCESS_KEY_ID}、${ACCESS_KEY_SECRET}、${SPAN_LOGSTORE}、${DEPENDENCY_LOGSTORE}
 
 ## 示例
 
