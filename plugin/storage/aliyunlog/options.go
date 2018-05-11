@@ -56,7 +56,6 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				AccessKeyID:        "",
 				AccessKeySecret:    "",
 				SpanLogstore:       "jaeger-span",
-				DependencyLogstore: "jaeger-dependency",
 				MaxQueryDuration:   24 * time.Hour,
 			},
 			namespace: primaryNamespace,

@@ -69,11 +69,12 @@ func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger)
 	}
 	f.spanLogstore = spanLogstore
 
-	depLogstore, err := f.primaryConfig.NewLogstore(config.DependencyType)
-	if err != nil {
-		return err
-	}
-	f.depLogstore = depLogstore
+	// TODO Create depLogstore in future
+	//depLogstore, err := f.primaryConfig.NewLogstore(config.DependencyType)
+	//if err != nil {
+	//	return err
+	//}
+	//f.depLogstore = depLogstore
 
 	return nil
 }
