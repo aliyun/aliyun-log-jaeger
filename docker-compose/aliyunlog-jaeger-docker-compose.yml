@@ -5,7 +5,7 @@ services:
       image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.0.2
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
-      command: ["/go/bin/collector-linux", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
+      command: ["/go/bin/collector-linux", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}", "--aliyun-log.dependency-logstore=${DEPENDENCY_LOGSTORE}"]
       ports:
         - "14269"
         - "14268:14268"
@@ -17,7 +17,7 @@ services:
       image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.0.2
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
-      command: ["/go/bin/query-linux", "--query.static-files=/go/jaeger-ui/", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
+      command: ["/go/bin/query-linux", "--query.static-files=/go/jaeger-ui/", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}", "--aliyun-log.dependency-logstore=${DEPENDENCY_LOGSTORE}"]
       ports:
         - "16686:16686"
         - "16687"

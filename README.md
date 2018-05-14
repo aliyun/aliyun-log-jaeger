@@ -101,7 +101,7 @@ make build-all-darwin
 Please configure the log service according to the following steps.
 
 * Login on [Aliyun Log Service Web Console](https://sls.console.aliyun.com/#/). 
-* Create project, logstore for storing span.
+* Create project, logstores for storing span and dependency, respectively.
 * Create indexes for the following fields.
 
 | Field Name | Type | Token |
@@ -161,6 +161,7 @@ Parameter Description
 | aliyun-log.access-key-id | program argument | specify the account information for your log services |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services |
 | aliyun-log.span-logstore | program argument | specify the logstore used to store span |
+| aliyun-log.dependency-logstore | program argument | specify the logstore used to store dependency |
 
 At default settings the collector exposes the following ports:
 
@@ -182,7 +183,8 @@ docker run \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE>
 ```
 
 If you have already built the corresponding binary file, take macOS as an example, you can run collector as follows:
@@ -193,7 +195,8 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE>
 ```
 
 ### Query Service & UI
@@ -210,6 +213,7 @@ Parameters Description
 | aliyun-log.access-key-id | program argument | specify the account information for your log services |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services |
 | aliyun-log.span-logstore | program argument | specify the logstore used to store span |
+| aliyun-log.dependency-logstore | program argument | specify the logstore used to store dependency |
 | query.static-files | program argument | Specify the location of the UI static files |
 
 At default settings the query service exposes the following port(s):
@@ -231,6 +235,7 @@ docker run \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE> \
   --query.static-files=/go/jaeger-ui/
 ```
 
@@ -243,6 +248,7 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.dependency-logstore=<DEPENDENCY_LOGSTORE> \
   --query.static-files=./jaeger-ui-build/build/
 ```
 
