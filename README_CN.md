@@ -180,7 +180,7 @@ docker run \
   -it --rm \
   -p14267:14267 -p14268:14268 -p9411:9411 \
   -e SPAN_STORAGE_TYPE=aliyun-log \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.0.1 \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.0.2 \
   /go/bin/collector-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
@@ -228,7 +228,7 @@ docker run \
   -it --rm \
   -p16686:16686 \
   -e SPAN_STORAGE_TYPE=aliyun-log \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.0.1 \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.0.2 \
   /go/bin/query-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
