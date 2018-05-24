@@ -131,7 +131,7 @@ agent 暴露如下端口
 | 端口号 | 协议 | 功能 |
 | --- | --- | --- |
 | 5775 | UDP | 通过兼容性 thrift 协议，接收 zipkin thrift 类型的数据 |
-| 6831 | UDP | 通过二进制 thrift 协议，接收 jaeger thrift 类型的数据 |
+| 6831 | UDP | 通过兼容性 thrift 协议，接收 jaeger thrift 类型的数据 |
 | 6832 | UDP | 通过二进制 thrift 协议，接收 jaeger thrift 类型的数据 |
 | 5778 | HTTP | 可用于配置采样策略 |
 
