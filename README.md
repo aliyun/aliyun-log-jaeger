@@ -139,7 +139,7 @@ docker run \
   -p6831:6831/udp \
   -p6832:6832/udp \
   -p5778:5778/tcp \
-  jaegertracing/jaeger-agent --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
+  jaegertracing/jaeger-agent /go/bin/agent-linux --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
 ```
 
 If you have already built the corresponding binary file, take macOS as an example, you can run agent as follows:
