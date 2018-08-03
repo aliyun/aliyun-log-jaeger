@@ -15,6 +15,7 @@
 package spanstore
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -72,10 +73,11 @@ func (c converter) fromSpanToLogContents(span *model.Span) []*sls.LogContent {
 	for _, tag := range span.Tags {
 		contents = c.appendContents(contents, tagsPrefix+tag.Key, tag.AsString())
 	}
-
 	for _, tag := range span.Process.Tags {
 		contents = c.appendContents(contents, processTagsPrefix+tag.Key, tag.AsString())
 	}
+	contents = c.appendContents(contents, logsField, c.tryMarshalLogs(span.Logs))
+
 	return contents
 }
 
@@ -124,6 +126,8 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 			span.Duration = model.MicrosecondsAsDuration(cast.ToUint64(v) / 1000)
 		case serviceNameField:
 			process.ServiceName = v
+		case logsField:
+			span.Logs = c.tryUnmarshalLogs(v)
 		}
 		tags = c.appendTags(tags, tagsPrefix, k, v)
 		process.Tags = c.appendTags(process.Tags, processTagsPrefix, k, v)
@@ -139,6 +143,27 @@ func (c converter) appendTags(tags model.KeyValues, prefix, k, v string) model.K
 		return append(tags, kv)
 	}
 	return tags
+}
+
+func (c converter) tryUnmarshalLogs(s string) (rv []model.Log) {
+	err := json.Unmarshal([]byte(s), &rv)
+	if err != nil {
+		return nil
+	}
+	return rv
+}
+
+func (c converter) tryMarshalLogs(log []model.Log) string {
+	if len(log) < 1 {
+		return "[]"
+	}
+
+	rv, err := json.Marshal(log)
+	if err != nil {
+		return "[]"
+	}
+
+	return string(rv)
 }
 
 func (c converter) toTraces(logs []map[string]string) ([]*model.Trace, error) {
