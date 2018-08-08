@@ -39,6 +39,7 @@ const (
 	startTimeField     = "startTime"
 	durationField      = "duration"
 	tagsPrefix         = "tags."
+	logsField          = "logs"
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
