@@ -45,6 +45,8 @@ COLORIZE=$(SED) ''/PASS/s//$(PASS)/'' | $(SED) ''/FAIL/s//$(FAIL)/''
 DOCKER_NAMESPACE?=jaegertracing
 DOCKER_TAG?=latest
 
+VERSION?=0.0.1
+
 MOCKERY=mockery
 
 .DEFAULT_GOAL := test-and-lint
@@ -332,21 +334,21 @@ generate-mocks: install-mockery
 
 .PHONY: generate-release-pkg
 generate-release-pkg: build-all-linux build-all-windows build-all-darwin
-	rm -rf ./jaeger-$(DOCKER_TAG)-darwin-amd64
-	rm -rf ./jaeger-$(DOCKER_TAG)-linux-amd64
-	rm -rf ./jaeger-$(DOCKER_TAG)-windows-amd64
-	mkdir jaeger-$(DOCKER_TAG)-darwin-amd64
-	mkdir jaeger-$(DOCKER_TAG)-linux-amd64
-	mkdir jaeger-$(DOCKER_TAG)-windows-amd64
-	cp cmd/agent/agent-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
-	cp cmd/collector/collector-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
-	cp cmd/query/query-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
-	cp cmd/agent/agent-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
-	cp cmd/collector/collector-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
-	cp cmd/query/query-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
-	cp cmd/agent/agent-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
-	cp cmd/collector/collector-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
-	cp cmd/query/query-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
-	tar -czf jaeger-$(DOCKER_TAG)-darwin-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-darwin-amd64/*
-	tar -czf jaeger-$(DOCKER_TAG)-linux-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-linux-amd64/*
-	tar -czf jaeger-$(DOCKER_TAG)-windows-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-windows-amd64/*
+	rm -rf ./jaeger-$(VERSION)-darwin-amd64
+	rm -rf ./jaeger-$(VERSION)-linux-amd64
+	rm -rf ./jaeger-$(VERSION)-windows-amd64
+	mkdir jaeger-$(VERSION)-darwin-amd64
+	mkdir jaeger-$(VERSION)-linux-amd64
+	mkdir jaeger-$(VERSION)-windows-amd64
+	cp cmd/agent/agent-darwin ./jaeger-$(VERSION)-darwin-amd64
+	cp cmd/collector/collector-darwin ./jaeger-$(VERSION)-darwin-amd64
+	cp cmd/query/query-darwin ./jaeger-$(VERSION)-darwin-amd64
+	cp cmd/agent/agent-linux ./jaeger-$(VERSION)-linux-amd64
+	cp cmd/collector/collector-linux ./jaeger-$(VERSION)-linux-amd64
+	cp cmd/query/query-linux ./jaeger-$(VERSION)-linux-amd64
+	cp cmd/agent/agent-windows ./jaeger-$(VERSION)-windows-amd64
+	cp cmd/collector/collector-windows ./jaeger-$(VERSION)-windows-amd64
+	cp cmd/query/query-windows ./jaeger-$(VERSION)-windows-amd64
+	tar -czf jaeger-$(VERSION)-darwin-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-darwin-amd64/*
+	tar -czf jaeger-$(VERSION)-linux-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-linux-amd64/*
+	tar -czf jaeger-$(VERSION)-windows-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-windows-amd64/*
