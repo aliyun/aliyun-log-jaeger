@@ -10,7 +10,8 @@
 3. 修改 [aliyunlog-jaeger-docker-compose.yml](docker-compose/aliyunlog-jaeger-docker-compose.yml) 中镜像的字段。
 
 ## 发布二进制包
-1. 运行 `make build-all-linux`，`make build-all-windows`，`make build-all-darwin` 构建能在不同平台上运行的二进制包。
+1. 运行命令 `make generate-release-pkg` 构建能在不同平台上运行的二进制包。
+2. 将 `jaeger-<new_version>-linux-amd64.tar.gz`，`jaeger-<new_version>-windows-amd64.tar.gz`，`jaeger-<new_version>-darwin-amd64.tar.gz` 上传至 release。
 
 ## 新建 Release
 进入 [release](https://github.com/aliyun/aliyun-log-jaeger/releases) 页面，点击`Draft a new release`为该发布的版本创建一个 release。
