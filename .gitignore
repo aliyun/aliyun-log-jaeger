@@ -36,3 +36,9 @@ README.LOCAL.md
 cmd.local
 docker.local
 .env.bak
+jaeger-*-darwin-amd64.tar.gz
+jaeger-*-darwin-amd64/
+jaeger-*-linux-amd64.tar.gz
+jaeger-*-linux-amd64/
+jaeger-*-windows-amd64.tar.gz
+jaeger-*-windows-amd64/
