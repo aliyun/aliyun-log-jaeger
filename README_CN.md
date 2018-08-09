@@ -60,7 +60,7 @@ Collector 会将接收到的 span 数据持久化到日志服务中。Query 会�
 
 ## 构建
 
-Jaeger 提供了 docker 镜像能够让您方便地运行各个组件。但是，如果您的环境中无法使用 docker，您也可以直接基于源码构建出能够在相应平台上运行的二进制文件。
+Jaeger 提供了 docker 镜像能够让您方便地运行各个组件。但是，如果您的环境中无法使用 docker，您也可以直接基于源码构建出能够在相应平台上运行的二进制文件或我们为不同平台构建好的[组件](https://github.com/aliyun/aliyun-log-jaeger/releases/tag/0.0.3)。
 
 开始之前，请确保将该项目克隆到 `$GOPATH` 下的正确位置 `github.com/jaegertracing/jaeger`
 ```
