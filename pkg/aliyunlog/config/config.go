@@ -79,6 +79,7 @@ func (c *Configuration) NewLogstore(logstoreType LogstoreType) (*sls.LogStore, e
 		c.AccessKeyID,
 		c.AccessKeySecret,
 	)
+	p.UserAgent = "jaeger-collector"
 	if err != nil {
 		return nil, err
 	}
