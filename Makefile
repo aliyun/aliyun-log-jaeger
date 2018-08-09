@@ -349,6 +349,6 @@ generate-release-pkg: build-all-linux build-all-windows build-all-darwin
 	cp cmd/agent/agent-windows ./jaeger-$(VERSION)-windows-amd64
 	cp cmd/collector/collector-windows ./jaeger-$(VERSION)-windows-amd64
 	cp cmd/query/query-windows ./jaeger-$(VERSION)-windows-amd64
-	tar -czf jaeger-$(VERSION)-darwin-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-darwin-amd64/*
-	tar -czf jaeger-$(VERSION)-linux-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-linux-amd64/*
-	tar -czf jaeger-$(VERSION)-windows-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-windows-amd64/*
+	tar -czf jaeger-$(VERSION)-darwin-amd64.tar.gz ./jaeger-$(VERSION)-darwin-amd64/*
+	tar -czf jaeger-$(VERSION)-linux-amd64.tar.gz ./jaeger-$(VERSION)-linux-amd64/*
+	tar -czf jaeger-$(VERSION)-windows-amd64.tar.gz ./jaeger-$(VERSION)-windows-amd64/*
