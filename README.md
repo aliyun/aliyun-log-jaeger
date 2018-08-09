@@ -59,7 +59,7 @@ The jaeger-collector will persist the received data to the log service. The jaeg
 
 ## Building
 
-Jaeger provides docker images that allows you to run various components in a convenient way. However, if you can't use docker in your environment, you can also build binary files that can run on the corresponding platform based on the source code directly.
+Jaeger provides docker images that allows you to run various components in a convenient way. However, if you can't use docker in your environment, you can also build binary files that can run on the corresponding platform based on the source code directly or use the [release packages](https://github.com/aliyun/aliyun-log-jaeger/releases/tag/0.0.3).
 
 To get started, make sure you clone the Git repository into the correct location `github.com/jaegertracing/jaeger` relative to `$GOPATH`:
 ```
