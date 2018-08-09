@@ -27,7 +27,7 @@ import (
 )
 
 // FromSpan converts a model.Span to a log record
-func FromSpan(span *model.Span, topic, source string) *sls.LogGroup {
+func FromSpan(span *model.Span, topic, source string) (*sls.LogGroup, error) {
 	return converter{}.fromSpan(span, topic, source)
 }
 
@@ -43,24 +43,32 @@ func ToTraces(logs []map[string]string) ([]*model.Trace, error) {
 
 type converter struct{}
 
-func (c converter) fromSpan(span *model.Span, topic, source string) *sls.LogGroup {
+func (c converter) fromSpan(span *model.Span, topic, source string) (*sls.LogGroup, error) {
+	logs, err := c.fromSpanToLogs(span)
+	if err != nil {
+		return nil, err
+	}
 	return &sls.LogGroup{
 		Topic:  proto.String(topic),
 		Source: proto.String(source),
-		Logs:   c.fromSpanToLogs(span),
-	}
+		Logs:   logs,
+	}, nil
 }
 
-func (c converter) fromSpanToLogs(span *model.Span) []*sls.Log {
+func (c converter) fromSpanToLogs(span *model.Span) ([]*sls.Log, error) {
+	contents, err := c.fromSpanToLogContents(span)
+	if err != nil {
+		return nil, err
+	}
 	return []*sls.Log{
 		{
 			Time:     proto.Uint32(uint32(span.StartTime.Unix())),
-			Contents: c.fromSpanToLogContents(span),
+			Contents: contents,
 		},
-	}
+	}, nil
 }
 
-func (c converter) fromSpanToLogContents(span *model.Span) []*sls.LogContent {
+func (c converter) fromSpanToLogContents(span *model.Span) ([]*sls.LogContent, error) {
 	contents := make([]*sls.LogContent, 0)
 	contents = c.appendContents(contents, traceIDField, span.TraceID.String())
 	contents = c.appendContents(contents, spanIDField, span.SpanID.String())
@@ -70,15 +78,30 @@ func (c converter) fromSpanToLogContents(span *model.Span) []*sls.LogContent {
 	contents = c.appendContents(contents, startTimeField, cast.ToString(span.StartTime.UnixNano()))
 	contents = c.appendContents(contents, durationField, cast.ToString(span.Duration.Nanoseconds()))
 	contents = c.appendContents(contents, serviceNameField, span.Process.ServiceName)
+
 	for _, tag := range span.Tags {
 		contents = c.appendContents(contents, tagsPrefix+tag.Key, tag.AsString())
 	}
 	for _, tag := range span.Process.Tags {
 		contents = c.appendContents(contents, processTagsPrefix+tag.Key, tag.AsString())
 	}
-	contents = c.appendContents(contents, logsField, c.tryMarshalLogs(span.Logs))
 
-	return contents
+	contents, err := c.appendReferences(contents, span.References)
+	if err != nil {
+		return nil, err
+	}
+
+	contents, err = c.appendLogs(contents, span.Logs)
+	if err != nil {
+		return nil, err
+	}
+
+	contents, err = c.appendWarnings(contents, span.Warnings)
+	if err != nil {
+		return nil, err
+	}
+
+	return contents, nil
 }
 
 func (c converter) appendContents(contents []*sls.LogContent, k, v string) []*sls.LogContent {
@@ -87,6 +110,60 @@ func (c converter) appendContents(contents []*sls.LogContent, k, v string) []*sl
 		Value: proto.String(v),
 	}
 	return append(contents, &content)
+}
+
+func (c converter) appendReferences(contents []*sls.LogContent, references []model.SpanRef) ([]*sls.LogContent, error) {
+	if len(references) < 1 {
+		return contents, nil
+	}
+
+	r, err := json.Marshal(references)
+	if err != nil {
+		return nil, err
+	}
+
+	content := sls.LogContent{
+		Key:   proto.String(referenceField),
+		Value: proto.String(string(r)),
+	}
+
+	return append(contents, &content), nil
+}
+
+func (c converter) appendLogs(contents []*sls.LogContent, logs []model.Log) ([]*sls.LogContent, error) {
+	if len(logs) < 1 {
+		return contents, nil
+	}
+
+	r, err := json.Marshal(logs)
+	if err != nil {
+		return nil, err
+	}
+
+	content := sls.LogContent{
+		Key:   proto.String(logsField),
+		Value: proto.String(string(r)),
+	}
+
+	return append(contents, &content), nil
+}
+
+func (c converter) appendWarnings(contents []*sls.LogContent, warnings []string) ([]*sls.LogContent, error) {
+	if len(warnings) < 1 {
+		return contents, nil
+	}
+
+	r, err := json.Marshal(warnings)
+	if err != nil {
+		return nil, err
+	}
+
+	content := sls.LogContent{
+		Key:   proto.String(warningsField),
+		Value: proto.String(string(r)),
+	}
+
+	return append(contents, &content), nil
 }
 
 func (c converter) toSpan(log map[string]string) (*model.Span, error) {
@@ -111,11 +188,11 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 			}
 			span.SpanID = spanID
 		case parentSpanIDField:
-			ParentSpanID, err := model.SpanIDFromString(v)
+			parentSpanID, err := model.SpanIDFromString(v)
 			if err != nil {
 				return nil, err
 			}
-			span.ParentSpanID = ParentSpanID
+			span.ParentSpanID = parentSpanID
 		case operationNameField:
 			span.OperationName = v
 		case flagsField:
@@ -126,18 +203,34 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 			span.Duration = model.MicrosecondsAsDuration(cast.ToUint64(v) / 1000)
 		case serviceNameField:
 			process.ServiceName = v
+		case referenceField:
+			refs, err := c.unmarshalReferences(v)
+			if err != nil {
+				return nil, err
+			}
+			span.References = refs
 		case logsField:
-			span.Logs = c.tryUnmarshalLogs(v)
+			logs, err := c.unmarshalLogs(v)
+			if err != nil {
+				return nil, err
+			}
+			span.Logs = logs
+		case warningsField:
+			warnings, err := c.unmarshalWarnings(v)
+			if err != nil {
+				return nil, err
+			}
+			span.Warnings = warnings
 		}
-		tags = c.appendTags(tags, tagsPrefix, k, v)
-		process.Tags = c.appendTags(process.Tags, processTagsPrefix, k, v)
+		tags = c.convertTags(tags, tagsPrefix, k, v)
+		process.Tags = c.convertTags(process.Tags, processTagsPrefix, k, v)
 	}
 	span.Tags = tags
 	span.Process = &process
 	return &span, nil
 }
 
-func (c converter) appendTags(tags model.KeyValues, prefix, k, v string) model.KeyValues {
+func (c converter) convertTags(tags model.KeyValues, prefix, k, v string) model.KeyValues {
 	if strings.HasPrefix(k, prefix) {
 		kv := model.String(strings.TrimPrefix(k, prefix), v)
 		return append(tags, kv)
@@ -145,25 +238,28 @@ func (c converter) appendTags(tags model.KeyValues, prefix, k, v string) model.K
 	return tags
 }
 
-func (c converter) tryUnmarshalLogs(s string) (rv []model.Log) {
-	err := json.Unmarshal([]byte(s), &rv)
+func (c converter) unmarshalReferences(s string) (refs []model.SpanRef, err error) {
+	err = json.Unmarshal([]byte(s), &refs)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return rv
+	return refs, nil
 }
 
-func (c converter) tryMarshalLogs(log []model.Log) string {
-	if len(log) < 1 {
-		return "[]"
-	}
-
-	rv, err := json.Marshal(log)
+func (c converter) unmarshalLogs(s string) (logs []model.Log, err error) {
+	err = json.Unmarshal([]byte(s), &logs)
 	if err != nil {
-		return "[]"
+		return nil, err
 	}
+	return logs, nil
+}
 
-	return string(rv)
+func (c converter) unmarshalWarnings(s string) (warnings []string, err error) {
+	err = json.Unmarshal([]byte(s), &warnings)
+	if err != nil {
+		return nil, err
+	}
+	return warnings, nil
 }
 
 func (c converter) toTraces(logs []map[string]string) ([]*model.Trace, error) {

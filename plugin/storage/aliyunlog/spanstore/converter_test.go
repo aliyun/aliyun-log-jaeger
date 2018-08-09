@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
+	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/kr/pretty"
 	"github.com/spf13/cast"
@@ -30,10 +31,21 @@ var (
 	someSpanID        = model.SpanID(3333)
 	someParentSpanID  = model.SpanID(11111)
 	someOperationName = "someOperationName"
-	someStartTime     = model.EpochMicrosecondsAsTime(55555)
-	someDuration      = model.MicrosecondsAsDuration(50000)
-	someFlags         = model.Flags(1)
-	someServiceName   = "someServiceName"
+
+	someRefs = []model.SpanRef{
+		{
+			TraceID: someTraceID,
+			SpanID:  someParentSpanID,
+			RefType: model.ChildOf,
+		},
+	}
+	someRefsValueStr = "[{\"refType\":\"child-of\",\"traceID\":\"56ce000000000000ad9c\",\"spanID\":\"2b67\"}]"
+
+	someStartTime    = model.EpochMicrosecondsAsTime(55555)
+	someDuration     = model.MicrosecondsAsDuration(50000)
+	someFlags        = model.Flags(1)
+	someLogTimestamp = model.EpochMicrosecondsAsTime(12345)
+	someServiceName  = "someServiceName"
 
 	someStringTagKey   = "someStringTag"
 	someStringTagValue = "someTagValue"
@@ -61,6 +73,7 @@ var (
 		model.Float64(someDoubleTagKey, someDoubleTagValue),
 		model.Binary(someBinaryTagKey, someBinaryTagValue),
 	}
+	someTagsValueStr = "[{\"key\":\"someStringTag\",\"vType\":\"string\",\"vStr\":\"someTagValue\"},{\"key\":\"someBoolTag\",\"vType\":\"bool\",\"vNum\":1},{\"key\":\"someLongTag\",\"vType\":\"int64\",\"vNum\":123},{\"key\":\"someDoubleTag\",\"vType\":\"float64\",\"vNum\":4608983858650965606},{\"key\":\"someBinaryTag\",\"vType\":\"binary\",\"vBlob\":\"c29tZUJpbmFyeVZhbHVl\"}]"
 
 	someUnusualTags = model.KeyValues{
 		model.String(someStringTagKey, someStringTagValue),
@@ -69,6 +82,17 @@ var (
 		model.String(someDoubleTagKey, someDoubleTagValueStr),
 		model.String(someBinaryTagKey, someBinaryTagValueStr),
 	}
+
+	someLogs = []model.Log{
+		{
+			Timestamp: someLogTimestamp,
+			Fields:    someTags,
+		},
+	}
+	someLogsValueStr = "[{\"timestamp\":\"1970-01-01T08:00:00.012345+08:00\",\"fields\":[{\"key\":\"someStringTag\",\"vType\":\"string\",\"vStr\":\"someTagValue\"},{\"key\":\"someBoolTag\",\"vType\":\"bool\",\"vNum\":1},{\"key\":\"someLongTag\",\"vType\":\"int64\",\"vNum\":123},{\"key\":\"someDoubleTag\",\"vType\":\"float64\",\"vNum\":4608983858650965606},{\"key\":\"someBinaryTag\",\"vType\":\"binary\",\"vBlob\":\"c29tZUJpbmFyeVZhbHVl\"}]}]"
+
+	someWarnings         = []string{"warning1", "warning2", "warning3"}
+	someWarningsValueStr = "[\"warning1\",\"warning2\",\"warning3\"]"
 )
 
 func getTestJaegerSpan() *model.Span {
@@ -77,11 +101,14 @@ func getTestJaegerSpan() *model.Span {
 		SpanID:        someSpanID,
 		ParentSpanID:  someParentSpanID,
 		OperationName: someOperationName,
+		References:    someRefs,
 		Flags:         someFlags,
 		StartTime:     someStartTime,
 		Duration:      someDuration,
 		Tags:          someTags,
+		Logs:          someLogs,
 		Process:       getTestJaegerProcess(),
+		Warnings:      someWarnings,
 	}
 }
 
@@ -98,11 +125,14 @@ func getTestUnusualJaegerSpan() *model.Span {
 		SpanID:        someSpanID,
 		ParentSpanID:  someParentSpanID,
 		OperationName: someOperationName,
+		References:    someRefs,
 		Flags:         someFlags,
 		StartTime:     someStartTime,
 		Duration:      someDuration,
 		Tags:          someUnusualTags,
+		Logs:          someLogs,
 		Process:       getTestUnusualJaegerProcess(),
+		Warnings:      someWarnings,
 	}
 }
 
@@ -119,6 +149,7 @@ func getTestLog() map[string]string {
 		spanIDField:                          someSpanID.String(),
 		parentSpanIDField:                    someParentSpanID.String(),
 		operationNameField:                   someOperationName,
+		referenceField:                       someRefsValueStr,
 		flagsField:                           fmt.Sprintf("%d", someFlags),
 		startTimeField:                       cast.ToString(someStartTime.UnixNano()),
 		durationField:                        cast.ToString(someDuration.Nanoseconds()),
@@ -127,12 +158,14 @@ func getTestLog() map[string]string {
 		tagsPrefix + someLongTagKey:          someLongTagValueStr,
 		tagsPrefix + someDoubleTagKey:        someDoubleTagValueStr,
 		tagsPrefix + someBinaryTagKey:        someBinaryTagValueStr,
+		logsField:                            someLogsValueStr,
 		serviceNameField:                     someServiceName,
 		processTagsPrefix + someStringTagKey: someStringTagValue,
 		processTagsPrefix + someBoolTagKey:   someBoolTagValueStr,
 		processTagsPrefix + someLongTagKey:   someLongTagValueStr,
 		processTagsPrefix + someDoubleTagKey: someDoubleTagValueStr,
 		processTagsPrefix + someBinaryTagKey: someBinaryTagValueStr,
+		warningsField:                        someWarningsValueStr,
 	}
 }
 
@@ -161,7 +194,8 @@ func TestToSpan(t *testing.T) {
 
 func TestFromSpan(t *testing.T) {
 	span := getTestJaegerSpan()
-	logGroup := FromSpan(span, "topic", "0.0.0.0")
+	logGroup, err := FromSpan(span, "topic", "0.0.0.0")
+	assert.Nil(t, err)
 	assert.Equal(t, "topic", *logGroup.Topic)
 	assert.Equal(t, "0.0.0.0", *logGroup.Source)
 	expectedLog := getTestLog()
@@ -171,4 +205,67 @@ func TestFromSpan(t *testing.T) {
 			t.Log(diff)
 		}
 	}
+}
+
+func TestAppendReferences(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendReferences(contents, someRefs)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	content := sls.LogContent{
+		Key:   proto.String(referenceField),
+		Value: proto.String(someRefsValueStr),
+	}
+	expectedContents = append(expectedContents, &content)
+	assert.Equal(t, expectedContents, contents)
+}
+
+func TestAppendReferences_nil(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendReferences(contents, nil)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	assert.Equal(t, expectedContents, contents)
+}
+
+func TestAppendLogs(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendLogs(contents, someLogs)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	content := sls.LogContent{
+		Key:   proto.String(logsField),
+		Value: proto.String(someLogsValueStr),
+	}
+	expectedContents = append(expectedContents, &content)
+	assert.Equal(t, expectedContents, contents)
+}
+
+func TestAppendLogs_nil(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendLogs(contents, nil)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	assert.Equal(t, expectedContents, contents)
+}
+
+func TestAppendWarnings(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendWarnings(contents, someWarnings)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	content := sls.LogContent{
+		Key:   proto.String(warningsField),
+		Value: proto.String(someWarningsValueStr),
+	}
+	expectedContents = append(expectedContents, &content)
+	assert.Equal(t, expectedContents, contents)
+}
+
+func TestAppendWarnings_nil(t *testing.T) {
+	contents := make([]*sls.LogContent, 0)
+	contents, err := converter{}.appendWarnings(contents, nil)
+	assert.NoError(t, err)
+	expectedContents := make([]*sls.LogContent, 0)
+	assert.Equal(t, expectedContents, contents)
 }

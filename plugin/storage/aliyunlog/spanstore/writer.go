@@ -51,10 +51,13 @@ func NewSpanWriter(logstore *sls.LogStore, logger *zap.Logger, metricsFactory me
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
-	logGroup := FromSpan(span, "", "0.0.0.0")
+	logGroup, err := FromSpan(span, "", "0.0.0.0")
+	if err != nil {
+		s.logError(span, err, "Failed to convert span to logGroup", s.logger)
+	}
 
 	start := time.Now()
-	err := s.logstore.PutLogs(logGroup)
+	err = s.logstore.PutLogs(logGroup)
 	s.writerMetrics.putLogs.Emit(err, time.Since(start))
 
 	if err != nil {

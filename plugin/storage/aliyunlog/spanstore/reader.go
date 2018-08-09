@@ -35,11 +35,13 @@ const (
 	spanIDField        = "spanID"
 	parentSpanIDField  = "parentSpanID"
 	operationNameField = "operationName"
+	referenceField     = "reference"
 	flagsField         = "flags"
 	startTimeField     = "startTime"
 	durationField      = "duration"
 	tagsPrefix         = "tags."
 	logsField          = "logs"
+	warningsField      = "Warnings"
 	serviceNameField   = "process.serviceName"
 	processTagsPrefix  = "process.tags."
 
