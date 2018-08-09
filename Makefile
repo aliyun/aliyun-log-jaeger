@@ -329,3 +329,24 @@ install-mockery:
 .PHONY: generate-mocks
 generate-mocks: install-mockery
 	$(MOCKERY) -all -dir ./pkg/es/ -output ./pkg/es/mocks && rm pkg/es/mocks/ClientBuilder.go
+
+.PHONY: generate-release-pkg
+generate-release-pkg: build-all-linux build-all-windows build-all-darwin
+	rm -rf ./jaeger-$(DOCKER_TAG)-darwin-amd64
+	rm -rf ./jaeger-$(DOCKER_TAG)-linux-amd64
+	rm -rf ./jaeger-$(DOCKER_TAG)-windows-amd64
+	mkdir jaeger-$(DOCKER_TAG)-darwin-amd64
+	mkdir jaeger-$(DOCKER_TAG)-linux-amd64
+	mkdir jaeger-$(DOCKER_TAG)-windows-amd64
+	cp cmd/agent/agent-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
+	cp cmd/collector/collector-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
+	cp cmd/query/query-darwin ./jaeger-$(DOCKER_TAG)-darwin-amd64
+	cp cmd/agent/agent-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
+	cp cmd/collector/collector-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
+	cp cmd/query/query-linux ./jaeger-$(DOCKER_TAG)-linux-amd64
+	cp cmd/agent/agent-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
+	cp cmd/collector/collector-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
+	cp cmd/query/query-windows ./jaeger-$(DOCKER_TAG)-windows-amd64
+	tar -czf jaeger-$(DOCKER_TAG)-darwin-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-darwin-amd64/*
+	tar -czf jaeger-$(DOCKER_TAG)-linux-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-linux-amd64/*
+	tar -czf jaeger-$(DOCKER_TAG)-windows-amd64.tar.gz ./jaeger-$(DOCKER_TAG)-windows-amd64/*
