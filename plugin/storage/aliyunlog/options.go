@@ -51,12 +51,12 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 	options := &Options{
 		primary: &namespaceConfig{
 			Configuration: config.Configuration{
-				Project:            "",
-				Endpoint:           "",
-				AccessKeyID:        "",
-				AccessKeySecret:    "",
-				SpanLogstore:       "jaeger-span",
-				MaxQueryDuration:   24 * time.Hour,
+				Project:          "",
+				Endpoint:         "",
+				AccessKeyID:      "",
+				AccessKeySecret:  "",
+				SpanLogstore:     "jaeger-span",
+				MaxQueryDuration: 24 * time.Hour,
 			},
 			namespace: primaryNamespace,
 		},
