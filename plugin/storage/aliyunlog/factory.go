@@ -37,8 +37,11 @@ type Factory struct {
 	logger         *zap.Logger
 
 	primaryConfig config.LogstoreBuilder
-	spanLogstore  *sls.LogStore
-	depLogstore   *sls.LogStore
+	client        sls.ClientInterface
+	spanProject   string
+	spanLogstore  string
+	depProject    string
+	depLogstore   string
 }
 
 // NewFactory creates a new Factory.
@@ -62,12 +65,11 @@ func (f *Factory) InitFromViper(v *viper.Viper) {
 // Initialize implements storage.Factory
 func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger) error {
 	f.metricsFactory, f.logger = metricsFactory, logger
-
-	spanLogstore, err := f.primaryConfig.NewLogstore(config.SpanType)
+	var err error
+	f.client, f.spanProject, f.spanLogstore, err = f.primaryConfig.NewClient(config.SpanType)
 	if err != nil {
 		return err
 	}
-	f.spanLogstore = spanLogstore
 
 	// TODO Create depLogstore in future
 	//depLogstore, err := f.primaryConfig.NewLogstore(config.DependencyType)
@@ -83,6 +85,8 @@ func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger)
 func (f *Factory) CreateSpanReader() (spanstore.Reader, error) {
 	cfg := f.primaryConfig
 	return logSpanStore.NewSpanReader(
+		f.client,
+		f.spanProject,
 		f.spanLogstore,
 		f.logger,
 		cfg.GetMaxQueryDuration(),
@@ -92,10 +96,19 @@ func (f *Factory) CreateSpanReader() (spanstore.Reader, error) {
 
 // CreateSpanWriter implements storage.Factory
 func (f *Factory) CreateSpanWriter() (spanstore.Writer, error) {
-	return logSpanStore.NewSpanWriter(f.spanLogstore, f.logger, f.metricsFactory), nil
+	return logSpanStore.NewSpanWriter(
+		f.client,
+		f.spanProject,
+		f.spanLogstore,
+		f.logger,
+		f.metricsFactory)
 }
 
 // CreateDependencyReader implements storage.Factory
 func (f *Factory) CreateDependencyReader() (dependencystore.Reader, error) {
-	return logDepStore.NewDependencyStore(f.depLogstore, f.logger), nil
+	return logDepStore.NewDependencyStore(
+		f.client,
+		f.depProject,
+		f.depLogstore,
+		f.logger), nil
 }

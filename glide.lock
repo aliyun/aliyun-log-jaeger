@@ -2,7 +2,7 @@ hash: 05cc8d362acd873ad7253d0bfaa957f68ff7c7551713a2e92158b1a154f24cc8
 updated: 2018-02-03T11:50:12.749669262+08:00
 imports:
 - name: github.com/aliyun/aliyun-log-go-sdk
-  version: 9f2109735ce80061007a445e82068b18061d1245
+  version: 665a5431099ca3130efdf001d6d32b730b84eb65
 - name: github.com/apache/thrift
   version: 53dd39833a08ce33582e5ff31fa18bb4735d6731
   subpackages:

@@ -25,6 +25,7 @@ import (
 const (
 	suffixProject          = ".project"
 	suffixEndpoint         = ".endpoint"
+	suffixAliCloudK8S      = ".alicloud-k8s-flag"
 	suffixAccessKeyID      = ".access-key-id"
 	suffixAccessKeySecret  = ".access-key-secret"
 	suffixSpanLogstore     = ".span-logstore"
@@ -53,6 +54,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 			Configuration: config.Configuration{
 				Project:          "",
 				Endpoint:         "",
+				AliCloudK8SFlag:  false,
 				AccessKeyID:      "",
 				AccessKeySecret:  "",
 				SpanLogstore:     "jaeger-span",
@@ -87,6 +89,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixEndpoint,
 		nsConfig.Endpoint,
 		"The endpoint required by AliCloud Log Service i.e cn-hangzhou.log.aliyuncs.com")
+	flagSet.Bool(
+		nsConfig.namespace+suffixAliCloudK8S,
+		nsConfig.AliCloudK8SFlag,
+		"Set this flag true if jeager deploy in AliCloud kubernetes cluster, and you don't need to set access key pair")
 	flagSet.String(
 		nsConfig.namespace+suffixAccessKeyID,
 		nsConfig.AccessKeyID,
@@ -116,6 +122,7 @@ func (opt *Options) InitFromViper(v *viper.Viper) {
 func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.Project = v.GetString(cfg.namespace + suffixProject)
 	cfg.Endpoint = v.GetString(cfg.namespace + suffixEndpoint)
+	cfg.AliCloudK8SFlag = v.GetBool(cfg.namespace + suffixAliCloudK8S)
 	cfg.AccessKeyID = v.GetString(cfg.namespace + suffixAccessKeyID)
 	cfg.AccessKeySecret = v.GetString(cfg.namespace + suffixAccessKeySecret)
 	cfg.SpanLogstore = v.GetString(cfg.namespace + suffixSpanLogstore)

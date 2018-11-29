@@ -81,21 +81,34 @@ var (
 // SpanReader can query for and load traces from AliCloud Log Service
 type SpanReader struct {
 	ctx      context.Context
-	logstore *sls.LogStore
+	client   sls.ClientInterface
+	project  string
+	logstore string
 	logger   *zap.Logger
 	// The age of the oldest data we will look for.
 	maxLookback time.Duration
 }
 
 // NewSpanReader returns a new SpanReader with a metrics.
-func NewSpanReader(logstore *sls.LogStore, logger *zap.Logger, maxLookback time.Duration, metricsFactory metrics.Factory) spanstore.Reader {
-	return storageMetrics.NewReadMetricsDecorator(newSpanReader(logstore, logger, maxLookback), metricsFactory)
+func NewSpanReader(client sls.ClientInterface,
+	project string,
+	logstore string,
+	logger *zap.Logger,
+	maxLookback time.Duration,
+	metricsFactory metrics.Factory) spanstore.Reader {
+	return storageMetrics.NewReadMetricsDecorator(newSpanReader(client, project, logstore, logger, maxLookback), metricsFactory)
 }
 
-func newSpanReader(logstore *sls.LogStore, logger *zap.Logger, maxLookback time.Duration) *SpanReader {
+func newSpanReader(client sls.ClientInterface,
+	project string,
+	logstore string,
+	logger *zap.Logger,
+	maxLookback time.Duration) *SpanReader {
 	ctx := context.Background()
 	return &SpanReader{
 		ctx:         ctx,
+		client:      client,
+		project:     project,
 		logstore:    logstore,
 		logger:      logger,
 		maxLookback: maxLookback,
@@ -134,7 +147,7 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	for {
 		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 			fmt.Sprintf("Trying to get spans for trace %s", traceID))
-		resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+		resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Search spans for trace %s failed", traceID))
 		}
@@ -166,7 +179,7 @@ func (s *SpanReader) getSpansCountForTrace(traceID, topic string, from, to int64
 
 	s.logGetHistograms(topic, from, to, queryExp, fmt.Sprintf("Trying to get count of spans for trace %s", traceID))
 
-	resp, err := s.logstore.GetHistograms(topic, from, to, queryExp)
+	resp, err := s.client.GetHistograms(s.project, s.logstore, topic, from, to, queryExp)
 	if err != nil {
 		return 0, errors.Wrap(err, fmt.Sprintf("Failed to get spans count for trace %s", traceID))
 	}
@@ -187,7 +200,7 @@ func (s *SpanReader) GetServices() ([]string, error) {
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 		"Trying to get services")
 
-	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, "Search services failed")
 	}
@@ -216,7 +229,7 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 		fmt.Sprintf("Trying to get operations for service %s", service))
 
-	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("Search operations for service %s failed", service))
 	}
@@ -300,7 +313,7 @@ func (s *SpanReader) findTraceIDs(traceQuery *spanstore.TraceQueryParameters) ([
 
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find trace ids")
 
-	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to find trace ids")
 	}
@@ -319,7 +332,7 @@ func (s *SpanReader) findTraces(traceQuery *spanstore.TraceQueryParameters) ([]*
 
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse, "Trying to find traces")
 
-	resp, err := s.logstore.GetLogs(topic, from, to, queryExp, maxLineNum, offset, reverse)
+	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to find traces")
 	}

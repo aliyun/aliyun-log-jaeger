@@ -16,6 +16,7 @@ package spanstore
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
@@ -32,22 +33,40 @@ type spanWriterMetrics struct {
 
 type SpanWriter struct {
 	ctx           context.Context
-	logstore      *sls.LogStore
+	client        sls.ClientInterface
+	project       string
+	logstore      string
 	logger        *zap.Logger
 	writerMetrics spanWriterMetrics
 }
 
-func NewSpanWriter(logstore *sls.LogStore, logger *zap.Logger, metricsFactory metrics.Factory) *SpanWriter {
+func NewSpanWriter(
+	client sls.ClientInterface,
+	project string,
+	logstore string,
+	logger *zap.Logger,
+	metricsFactory metrics.Factory) (*SpanWriter, error) {
 	ctx := context.Background()
 
+	fmt.Println("init span writer resource begin.")
+	// init LogService resources
+	err := InitSpanWriterLogstoreResource(client, project, logstore, logger)
+	if err != nil {
+		fmt.Println("init span writer resource error : ", err)
+		logger.With(zap.Error(err)).Error("init span writer resource error")
+		return nil, err
+	}
+	fmt.Println("init span writer resource success.")
 	return &SpanWriter{
 		ctx:      ctx,
+		client:   client,
+		project:  project,
 		logstore: logstore,
 		logger:   logger,
 		writerMetrics: spanWriterMetrics{
 			putLogs: storageMetrics.NewWriteMetrics(metricsFactory, "putLogs"),
 		},
-	}
+	}, nil
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
@@ -57,7 +76,7 @@ func (s *SpanWriter) WriteSpan(span *model.Span) error {
 	}
 
 	start := time.Now()
-	err = s.logstore.PutLogs(logGroup)
+	err = s.client.PutLogs(s.project, s.logstore, logGroup)
 	s.writerMetrics.putLogs.Emit(err, time.Since(start))
 
 	if err != nil {

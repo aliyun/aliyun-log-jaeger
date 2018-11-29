@@ -26,14 +26,18 @@ import (
 // DependencyStore handles all queries and insertions to AliCloud Log Service dependencies
 type DependencyStore struct {
 	ctx      context.Context
-	logstore *sls.LogStore
+	client   sls.ClientInterface
+	project  string
+	logstore string
 	logger   *zap.Logger
 }
 
 // NewDependencyStore returns a DependencyStore
-func NewDependencyStore(logstore *sls.LogStore, logger *zap.Logger) *DependencyStore {
+func NewDependencyStore(client sls.ClientInterface, project string, logstore string, logger *zap.Logger) *DependencyStore {
 	return &DependencyStore{
 		ctx:      context.Background(),
+		client:   client,
+		project:  project,
 		logstore: logstore,
 		logger:   logger,
 	}

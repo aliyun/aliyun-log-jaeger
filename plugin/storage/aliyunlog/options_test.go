@@ -28,6 +28,7 @@ func TestOptions(t *testing.T) {
 	primary := opts.GetPrimary()
 	assert.Empty(t, primary.Project)
 	assert.Empty(t, primary.Endpoint)
+	assert.False(t, primary.AliCloudK8SFlag)
 	assert.Empty(t, primary.AccessKeyID)
 	assert.Empty(t, primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span", primary.SpanLogstore)
@@ -36,6 +37,7 @@ func TestOptions(t *testing.T) {
 	aux := opts.Get("archive")
 	assert.Equal(t, primary.Project, aux.Project)
 	assert.Equal(t, primary.Endpoint, aux.Endpoint)
+	assert.Equal(t, primary.AliCloudK8SFlag, aux.AliCloudK8SFlag)
 	assert.Equal(t, primary.AccessKeyID, aux.AccessKeyID)
 	assert.Equal(t, primary.AccessKeySecret, aux.AccessKeySecret)
 	assert.Equal(t, primary.SpanLogstore, aux.SpanLogstore)
@@ -47,12 +49,14 @@ func TestOptionsWithFlags(t *testing.T) {
 	command.ParseFlags([]string{
 		"--aliyun-log.project=my-jaeger-test",
 		"--aliyun-log.endpoint=cn-beijing.log.aliyuncs.com",
+		"--aliyun-log.alicloud-k8s-flag=false",
 		"--aliyun-log.access-key-id=id-xxx",
 		"--aliyun-log.access-key-secret=secret-xxx",
 		"--aliyun-log.span-logstore=jaeger-span-store",
 		"--aliyun-log.max-query-duration=48h",
 		// a couple overrides
 		"--aliyun-log.aux.project=my-jaeger-test-2",
+		"--aliyun-log.aux.alicloud-k8s-flag=true",
 		"--aliyun-log.aux.access-key-id=id-yyy",
 		"--aliyun-log.aux.access-key-secret=secret-yyy",
 		"--aliyun-log.aux.max-query-duration=15m",
@@ -63,6 +67,7 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "my-jaeger-test", primary.Project)
 	assert.Equal(t, "cn-beijing.log.aliyuncs.com", primary.Endpoint)
 	assert.Equal(t, "id-xxx", primary.AccessKeyID)
+	assert.Equal(t, false, primary.AliCloudK8SFlag)
 	assert.Equal(t, "secret-xxx", primary.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", primary.SpanLogstore)
 	assert.Equal(t, 48*time.Hour, primary.MaxQueryDuration)
@@ -71,6 +76,7 @@ func TestOptionsWithFlags(t *testing.T) {
 	assert.Equal(t, "my-jaeger-test-2", aux.Project)
 	assert.Equal(t, "cn-beijing.log.aliyuncs.com", aux.Endpoint)
 	assert.Equal(t, "id-yyy", aux.AccessKeyID)
+	assert.Equal(t, true, aux.AliCloudK8SFlag)
 	assert.Equal(t, "secret-yyy", aux.AccessKeySecret)
 	assert.Equal(t, "jaeger-span-store", aux.SpanLogstore)
 	assert.Equal(t, 15*time.Minute, aux.MaxQueryDuration)

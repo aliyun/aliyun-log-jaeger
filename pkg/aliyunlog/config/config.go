@@ -30,10 +30,14 @@ const (
 	DependencyType
 )
 
+const initEcsTokenTryMax = 10
+const initEcsTokenSleep = time.Second * 5
+
 // Configuration describes the configuration properties needed to connect to an AliCloud Log Service cluster
 type Configuration struct {
 	Project            string
 	Endpoint           string
+	AliCloudK8SFlag    bool
 	AccessKeyID        string
 	AccessKeySecret    string
 	SpanLogstore       string
@@ -41,9 +45,10 @@ type Configuration struct {
 	MaxQueryDuration   time.Duration
 }
 
-// LogstoreBuilder creates new sls.Logstore
+// LogstoreBuilder creates new sls.ClientInterface
 type LogstoreBuilder interface {
-	NewLogstore(logstoreType LogstoreType) (*sls.LogStore, error)
+	// NewClient return client, project, logstore, error
+	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, error)
 	GetMaxQueryDuration() time.Duration
 }
 
@@ -72,29 +77,29 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 	}
 }
 
-func (c *Configuration) NewLogstore(logstoreType LogstoreType) (*sls.LogStore, error) {
-	p, err := sls.NewLogProject(
-		c.Project,
-		c.Endpoint,
-		c.AccessKeyID,
-		c.AccessKeySecret,
-	)
-	p.UserAgent = userAgent
-	if err != nil {
-		return nil, err
-	}
+// NewClient return client, project, logstore, error
+func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, err error) {
+	if c.AliCloudK8SFlag {
+		shutdown := make(chan struct{}, 1)
+		for i := 0; i < initEcsTokenTryMax; i++ {
+			client, err = sls.CreateTokenAutoUpdateClient(c.Endpoint, UpdateTokenFunction, shutdown)
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			return nil, "", "", err
+		}
 
-	var logstore *sls.LogStore
-	if logstoreType == SpanType {
-		logstore, err = p.GetLogStore(c.SpanLogstore)
 	} else {
-		logstore, err = p.GetLogStore(c.DependencyLogstore)
+		client = sls.CreateNormalInterface(c.Endpoint, c.AccessKeyID, c.AccessKeySecret, "")
 	}
-	if err != nil {
-		return nil, err
+	// @todo set user agent
+	//p.UserAgent = userAgent
+	if logstoreType == SpanType {
+		return client, c.Project, c.SpanLogstore, nil
 	}
-
-	return logstore, nil
+	return client, c.Project, c.DependencyLogstore, nil
 }
 
 func (c *Configuration) GetMaxQueryDuration() time.Duration {
