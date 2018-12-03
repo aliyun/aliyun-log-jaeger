@@ -75,8 +75,8 @@ func (c converter) fromSpanToLogContents(span *model.Span) ([]*sls.LogContent, e
 	contents = c.appendContents(contents, parentSpanIDField, span.ParentSpanID.String())
 	contents = c.appendContents(contents, operationNameField, span.OperationName)
 	contents = c.appendContents(contents, flagsField, fmt.Sprintf("%d", span.Flags))
-	contents = c.appendContents(contents, startTimeField, cast.ToString(span.StartTime.UnixNano()))
-	contents = c.appendContents(contents, durationField, cast.ToString(span.Duration.Nanoseconds()))
+	contents = c.appendContents(contents, startTimeField, cast.ToString(span.StartTime.UnixNano()/1000))
+	contents = c.appendContents(contents, durationField, cast.ToString(span.Duration.Nanoseconds()/1000))
 	contents = c.appendContents(contents, serviceNameField, span.Process.ServiceName)
 
 	for _, tag := range span.Tags {
@@ -198,9 +198,9 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 		case flagsField:
 			span.Flags = model.Flags(cast.ToUint64(v))
 		case startTimeField:
-			span.StartTime = model.EpochMicrosecondsAsTime(cast.ToUint64(v) / 1000)
+			span.StartTime = model.EpochMicrosecondsAsTime(cast.ToUint64(v))
 		case durationField:
-			span.Duration = model.MicrosecondsAsDuration(cast.ToUint64(v) / 1000)
+			span.Duration = model.MicrosecondsAsDuration(cast.ToUint64(v))
 		case serviceNameField:
 			process.ServiceName = v
 		case referenceField:
