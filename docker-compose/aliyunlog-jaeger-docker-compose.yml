@@ -2,7 +2,7 @@ version: '2'
 
 services:
     jaeger-collector:
-      image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.0.3
+      image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.1.9
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
       command: ["/go/bin/collector-linux", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
@@ -14,7 +14,7 @@ services:
       restart: on-failure
 
     jaeger-query:
-      image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.0.3
+      image: registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.1.9
       environment:
         - SPAN_STORAGE_TYPE=aliyun-log
       command: ["/go/bin/query-linux", "--query.static-files=/go/jaeger-ui/", "--aliyun-log.project=${PROJECT}", "--aliyun-log.endpoint=${ENDPOINT}", "--aliyun-log.access-key-id=${ACCESS_KEY_ID}", "--aliyun-log.access-key-secret=${ACCESS_KEY_SECRET}", "--aliyun-log.span-logstore=${SPAN_LOGSTORE}"]
