@@ -16,7 +16,6 @@ package spanstore
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
@@ -48,15 +47,14 @@ func NewSpanWriter(
 	metricsFactory metrics.Factory) (*SpanWriter, error) {
 	ctx := context.Background()
 
-	fmt.Println("init span writer resource begin.")
+	logger.Info("Prepare to init span writer resource")
 	// init LogService resources
 	err := InitSpanWriterLogstoreResource(client, project, logstore, logger)
 	if err != nil {
-		fmt.Println("init span writer resource error : ", err)
-		logger.With(zap.Error(err)).Error("init span writer resource error")
+		logger.Error("Failed to init span writer resource", zap.Error(err))
 		return nil, err
 	}
-	fmt.Println("init span writer resource success.")
+	logger.Info("Init span writer resource successfully")
 	return &SpanWriter{
 		ctx:      ctx,
 		client:   client,
