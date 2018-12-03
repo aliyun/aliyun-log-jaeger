@@ -42,3 +42,4 @@ jaeger-*-linux-amd64.tar.gz
 jaeger-*-linux-amd64/
 jaeger-*-windows-amd64.tar.gz
 jaeger-*-windows-amd64/
+.env
