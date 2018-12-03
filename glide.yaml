@@ -67,3 +67,5 @@ import:
   version: ~1.1.0
 - package: github.com/Jeffail/gabs
   version: ~1.0.0
+- package: github.com/pelletier/go-toml
+  version: v1.2.0
