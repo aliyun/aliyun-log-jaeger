@@ -131,7 +131,7 @@ func (f Flags) checkFlags(bit Flags) bool {
 
 func (t TraceID) String() string {
 	if t.High == 0 {
-		return fmt.Sprintf("%x", t.Low)
+		return fmt.Sprintf("%016x", t.Low)
 	}
 	return fmt.Sprintf("%016x%016x", t.High, t.Low)
 }
