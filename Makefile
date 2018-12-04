@@ -45,7 +45,7 @@ COLORIZE=$(SED) ''/PASS/s//$(PASS)/'' | $(SED) ''/FAIL/s//$(FAIL)/''
 DOCKER_NAMESPACE?=jaegertracing
 DOCKER_TAG?=latest
 
-VERSION?=0.0.1
+VERSION?=0.1.9
 
 MOCKERY=mockery
 
