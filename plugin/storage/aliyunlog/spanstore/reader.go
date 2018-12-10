@@ -384,27 +384,27 @@ func (s *SpanReader) buildOperationNameQuery(operationName string) string {
 }
 
 func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax time.Duration) string {
-	minDurationNanos := durationMin.Nanoseconds()
-	maxDurationNanos := durationMax.Nanoseconds()
-	if minDurationNanos != 0 && maxDurationNanos != 0 {
+	minDurationMicros := durationMin.Nanoseconds()/1000
+	maxDurationMicros := durationMax.Nanoseconds()/1000
+	if minDurationMicros != 0 && maxDurationMicros != 0 {
 		return fmt.Sprintf(
 			"%s >= %d and %s <= %d",
 			durationField,
-			minDurationNanos,
+			minDurationMicros,
 			durationField,
-			maxDurationNanos,
+			maxDurationMicros,
 		)
-	} else if minDurationNanos != 0 {
+	} else if minDurationMicros != 0 {
 		return fmt.Sprintf(
 			"%s >= %d",
 			durationField,
-			minDurationNanos,
+			minDurationMicros,
 		)
-	} else if maxDurationNanos != 0 {
+	} else if maxDurationMicros != 0 {
 		return fmt.Sprintf(
 			"%s <= %d",
 			durationField,
-			maxDurationNanos,
+			maxDurationMicros,
 		)
 	} else {
 		return ""
