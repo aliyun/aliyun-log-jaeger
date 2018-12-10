@@ -42,8 +42,8 @@ PASS=$(shell printf "\033[32mPASS\033[0m")
 FAIL=$(shell printf "\033[31mFAIL\033[0m")
 FIXME=$(shell printf "\033[31mFIXME\033[0m")
 COLORIZE=$(SED) ''/PASS/s//$(PASS)/'' | $(SED) ''/FAIL/s//$(FAIL)/''
-DOCKER_NAMESPACE?=jaegertracing
-DOCKER_TAG?=latest
+DOCKER_NAMESPACE?=registry.cn-hangzhou.aliyuncs.com/jaegertracing
+DOCKER_TAG?=0.1.9
 
 VERSION?=0.1.9
 
