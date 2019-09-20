@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/aliyun/aliyun-log-go-sdk"
+	"github.com/aliyun/aliyun-log-go-sdk/producer"
 	"github.com/jaegertracing/jaeger/model"
 	storageMetrics "github.com/jaegertracing/jaeger/storage/spanstore/metrics"
 	"github.com/pkg/errors"
@@ -37,6 +38,7 @@ type SpanWriter struct {
 	logstore      string
 	logger        *zap.Logger
 	writerMetrics spanWriterMetrics
+	producer      *producer.Producer
 }
 
 func NewSpanWriter(
@@ -55,16 +57,30 @@ func NewSpanWriter(
 		return nil, err
 	}
 	logger.Info("Init span writer resource successfully")
+	new_client, _ := client.(*sls.Client)
+	producerConfig := producer.GetDefaultProducerConfig()
+	producerConfig.AccessKeySecret = new_client.AccessKeySecret
+	producerConfig.AccessKeyID = new_client.AccessKeyID
+	producerConfig.Endpoint = new_client.Endpoint
+	producerInstance := producer.InitProducer(producerConfig)
+	producerInstance.Start()
+
 	return &SpanWriter{
 		ctx:      ctx,
 		client:   client,
 		project:  project,
 		logstore: logstore,
 		logger:   logger,
+		producer: producerInstance,
 		writerMetrics: spanWriterMetrics{
 			putLogs: storageMetrics.NewWriteMetrics(metricsFactory, "putLogs"),
 		},
 	}, nil
+}
+
+func (s *SpanWriter) Close() error {
+	s.producer.SafeClose()
+	return nil
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
@@ -72,11 +88,12 @@ func (s *SpanWriter) WriteSpan(span *model.Span) error {
 	if err != nil {
 		s.logError(span, err, "Failed to convert span to logGroup", s.logger)
 	}
-
 	start := time.Now()
-	err = s.client.PutLogs(s.project, s.logstore, logGroup)
+	loglist := logGroup.Logs
+	topic := *logGroup.Topic
+	source := *logGroup.Source
+	err = s.producer.SendLogList(s.project, s.logstore, topic, source, loglist)
 	s.writerMetrics.putLogs.Emit(err, time.Since(start))
-
 	if err != nil {
 		s.logError(span, err, "Failed to write span", s.logger)
 	}

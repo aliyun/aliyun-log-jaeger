@@ -54,7 +54,7 @@ import:
 - package: github.com/go-openapi/validate
 - package: github.com/go-openapi/loads
 - package: github.com/aliyun/aliyun-log-go-sdk
-  version: 665a5431099ca3130efdf001d6d32b730b84eb65
+  version: 7f2b85e15d07cfefac44c3441f9c1931873d6b27
 - package: github.com/cloudflare/golz4
   version: ef862a3cdc58a6f1fee4e3af3d44fbe279194cde
 - package: github.com/golang/glog
