@@ -216,9 +216,10 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
 	queryExp := fmt.Sprintf(
-		`%s: "%s" | select distinct(%s) limit %d`,
+		`%s: "%s" | select distinct(%s) from (select %s from log limit 10000) limit %d`,
 		serviceNameField,
 		service,
+		operationNameField,
 		operationNameField,
 		defaultOperationLimit,
 	)
