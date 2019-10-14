@@ -192,7 +192,12 @@ func (s *SpanReader) GetServices() ([]string, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
-	queryExp := fmt.Sprintf(`| select distinct("%s") limit %d`, serviceNameField, defaultServiceLimit)
+	queryExp := fmt.Sprintf(
+		`| select distinct("%s") from (select %s from log limit 10000) limit %d`,
+		serviceNameField,
+		serviceNameField,
+		defaultServiceLimit,
+	)
 	maxLineNum := int64(0)
 	offset := int64(0)
 	reverse := false
@@ -385,8 +390,8 @@ func (s *SpanReader) buildOperationNameQuery(operationName string) string {
 }
 
 func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax time.Duration) string {
-	minDurationMicros := durationMin.Nanoseconds()/1000
-	maxDurationMicros := durationMax.Nanoseconds()/1000
+	minDurationMicros := durationMin.Nanoseconds() / 1000
+	maxDurationMicros := durationMax.Nanoseconds() / 1000
 	if minDurationMicros != 0 && maxDurationMicros != 0 {
 		return fmt.Sprintf(
 			"%s >= %d and %s <= %d",
