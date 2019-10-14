@@ -193,7 +193,7 @@ func (s *SpanReader) GetServices() ([]string, error) {
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
 	queryExp := fmt.Sprintf(
-		`| select distinct("%s") from (select %s from log limit 10000) limit %d`,
+		`| select distinct("%s") from (select "%s" from log limit 10000) limit %d`,
 		serviceNameField,
 		serviceNameField,
 		defaultServiceLimit,
