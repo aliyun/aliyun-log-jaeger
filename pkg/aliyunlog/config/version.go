@@ -15,7 +15,7 @@
 package config
 
 const (
-	version = "0.2.1"
+	version = "0.2.2"
 
 	userAgent = "aliyun-log-jaeger-" + version
 )
