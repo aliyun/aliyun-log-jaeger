@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aliyun/aliyun-log-go-sdk"
+	sls "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 	storageMetrics "github.com/jaegertracing/jaeger/storage/spanstore/metrics"
@@ -47,7 +47,7 @@ const (
 
 	defaultServiceLimit    = 1000
 	defaultOperationLimit  = 1000
-	defaultPageSizeForSpan = 1000
+	defaultPageSizeForSpan = 100
 	defaultNumTraces       = 100
 	defaultMaxNum          = 100000
 
@@ -141,14 +141,30 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	if err != nil {
 		return nil, err
 	}
-
+	if maxLineNum > 100 {
+		maxLineNum = 100
+	}
 	spans := make([]*model.Span, 0)
-	curCount := int64(0)
 	for {
 		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 			fmt.Sprintf("Trying to get spans for trace %s", traceID))
-		resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
-		if err != nil {
+		resp, err := func() (*sls.GetLogsResponse, error) {
+			var innerErr error
+			var lastNotNilResp *sls.GetLogsResponse
+			var innerResp *sls.GetLogsResponse
+			for i := 0; i < 3; i++ {
+				innerResp, innerErr = s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
+				if innerResp != nil {
+					lastNotNilResp = innerResp
+				}
+				if innerErr == nil && innerResp != nil && innerResp.IsComplete() {
+					break
+				}
+			}
+			return lastNotNilResp, innerErr
+
+		}()
+		if err != nil && resp == nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Search spans for trace %s failed", traceID))
 		}
 		for _, log := range resp.Logs {
@@ -158,11 +174,10 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 			}
 			spans = append(spans, span)
 		}
-		curCount += resp.Count
-		if curCount == count {
+		offset += maxLineNum
+		if offset >= count || offset >= 2000 {
 			break
 		}
-		offset += resp.Count
 	}
 	if len(spans) == 0 {
 		return nil, spanstore.ErrTraceNotFound
