@@ -137,6 +137,8 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	offset := int64(0)
 	reverse := false
 
+	s.logger.Info("Use fix page size")
+
 	count, err := s.getSpansCountForTrace(traceID, topic, from, to)
 	if err != nil {
 		return nil, err
