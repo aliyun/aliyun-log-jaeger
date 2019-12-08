@@ -43,3 +43,5 @@ jaeger-*-linux-amd64/
 jaeger-*-windows-amd64.tar.gz
 jaeger-*-windows-amd64/
 .env
+tmp/agg_trace.py
+tmp/sls_trace_agg.conf
