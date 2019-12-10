@@ -165,6 +165,7 @@ Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-co
 | aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
 | aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
 | aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
+| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 |
 
 默认情况下，collector 暴露如下端口
 
@@ -217,6 +218,7 @@ jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状
 | aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
 | aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
 | aliyun-log.span-agg-logstore | 程序参数 | 指定用于存储聚合了 service 和 operation 数据的 Logstore |
+| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 |
 | query.static-files | 程序参数 | 指定 UI 静态文件的位置 |
 
 默认情况下，query 暴露如下端口
