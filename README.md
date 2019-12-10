@@ -160,15 +160,15 @@ The collectors are stateless and thus many instances of jaeger-collector can be 
 
 Parameter Description
 
-| Parameter Name | Type | Description |
-| --- | --- | --- |
-| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span |
-| aliyun-log.project | program argument | specify the project used to store span |
-| aliyun-log.endpoint | program argument | specify the endpoint for your project |
-| aliyun-log.access-key-id | program argument | specify the account information for your log services |
-| aliyun-log.access-key-secret | program argument | specify the account information for your log services |
-| aliyun-log.span-logstore | program argument | specify the logstore used to store span |
-| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources |
+| Parameter Name | Type | Description | Is Optional | Default |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span | N | n/a |
+| aliyun-log.project | program argument | specify the project used to store span | N | n/a |
+| aliyun-log.endpoint | program argument | specify the endpoint for your project | N | n/a |
+| aliyun-log.access-key-id | program argument | specify the account information for your log services | N | n/a |
+| aliyun-log.access-key-secret | program argument | specify the account information for your log services | N | n/a |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span | N | n/a |
+| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
 
 At default settings the collector exposes the following ports:
 
@@ -212,17 +212,17 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
 
 Parameters Description
 
-| Parameter Name | Type | Description |
-| --- | --- | --- |
-| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span |
-| aliyun-log.project | program argument | specify the project used to store span |
-| aliyun-log.endpoint | program argument | specify the endpoint for your project |
-| aliyun-log.access-key-id | program argument | specify the account information for your log services |
-| aliyun-log.access-key-secret | program argument | specify the account information for your log services |
-| aliyun-log.span-logstore | program argument | specify the logstore used to store span |
-| aliyun-log.span-agg-logstore | program argument | specify the logstore used to store agg data |
-| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources |
-| query.static-files | program argument | Specify the location of the UI static files |
+| Parameter Name | Type | Description | Is Optional | Default |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | environment variable | specify the storage type used to store span | N | n/a |
+| aliyun-log.project | program argument | specify the project used to store span | N | n/a |
+| aliyun-log.endpoint | program argument | specify the endpoint for your project | N | n/a |
+| aliyun-log.access-key-id | program argument | specify the account information for your log services | N | n/a |
+| aliyun-log.access-key-secret | program argument | specify the account information for your log services | N | n/a |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span | N | n/a |
+| aliyun-log.span-agg-logstore | program argument | specify the logstore used to store agg data | Y | "" |
+| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
+| query.static-files | program argument | Specify the location of the UI static files | N | n/a |
 
 At default settings the query service exposes the following port(s):
 
