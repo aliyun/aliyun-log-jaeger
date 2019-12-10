@@ -60,7 +60,7 @@ Collector 会将接收到的 span 数据持久化到日志服务中。Query 会�
 
 ## 构建
 
-Jaeger 提供了 docker 镜像能够让您方便地运行各个组件。但是，如果您的环境中无法使用 docker，您也可以直接基于源码构建出能够在相应平台上运行的二进制文件或我们为不同平台构建好的[组件](https://github.com/aliyun/aliyun-log-jaeger/releases/tag/0.2.3)。
+Jaeger 提供了 docker 镜像能够让您方便地运行各个组件。但是，如果您的环境中无法使用 docker，您也可以直接基于源码构建出能够在相应平台上运行的二进制文件或我们为不同平台构建好的[组件](https://github.com/aliyun/aliyun-log-jaeger/releases/tag/0.2.4)。
 
 开始之前，请确保将该项目克隆到 `$GOPATH` 下的正确位置 `github.com/jaegertracing/jaeger`
 ```
@@ -180,13 +180,14 @@ docker run \
   -it --rm \
   -p14267:14267 -p14268:14268 -p9411:9411 \
   -e SPAN_STORAGE_TYPE=aliyun-log \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.2.3 \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.2.4 \
   /go/bin/collector-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
 ```
 
 如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 collector
@@ -197,7 +198,8 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
 ```
 
 ### Query Service & UI
@@ -214,6 +216,7 @@ jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状
 | aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
 | aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
 | aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
+| aliyun-log.span-agg-logstore | 程序参数 | 指定用于存储聚合了 service 和 operation 数据的 Logstore |
 | query.static-files | 程序参数 | 指定 UI 静态文件的位置 |
 
 默认情况下，query 暴露如下端口
@@ -228,13 +231,15 @@ docker run \
   -it --rm \
   -p16686:16686 \
   -e SPAN_STORAGE_TYPE=aliyun-log \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.2.3 \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.2.4 \
   /go/bin/query-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.span-agg-logstore=<SPAN_AGG_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
   --query.static-files=/go/jaeger-ui/
 ```
 
@@ -247,6 +252,8 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.span-agg-logstore=<SPAN_AGG_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
   --query.static-files=./jaeger-ui-build/build/
 ```
 
