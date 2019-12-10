@@ -164,15 +164,15 @@ Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-co
 
 参数说明如下
 
-| 参数名 | 参数类型 | 描述 |
-| --- | --- | --- |
-| SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log |
-| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project |
-| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint |
-| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
-| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
-| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
-| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 |
+| 参数名 | 参数类型 | 描述 | 是否可选 | 默认值 |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log | N | n/a |
+| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project | N | n/a |
+| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint | N | n/a |
+| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID | N | n/a |
+| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret | N | n/a |
+| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore | N | n/a |
+| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 | Y | true |
 
 默认情况下，collector 暴露如下端口
 
@@ -216,17 +216,17 @@ jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状
 
 参数说明如下
 
-| 参数名 | 参数类型 | 描述 |
-| --- | --- | --- |
-| SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log |
-| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project |
-| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint |
-| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID |
-| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret |
-| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore |
-| aliyun-log.span-agg-logstore | 程序参数 | 指定用于存储聚合了 service 和 operation 数据的 Logstore |
-| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 |
-| query.static-files | 程序参数 | 指定 UI 静态文件的位置 |
+| 参数名 | 参数类型 | 描述 | 是否可选 | 默认值 |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log | N | n/a |
+| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project | N | n/a |
+| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint | N | n/a |
+| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID | N | n/a |
+| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret | N | n/a |
+| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore | N | n/a |
+| aliyun-log.span-agg-logstore | 程序参数 | 指定用于存储聚合了 service 和 operation 数据的 Logstore | Y | "" |
+| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化 istio 相关的资源报表 | Y | true |
+| query.static-files | 程序参数 | 指定 UI 静态文件的位置 | N | n/a |
 
 默认情况下，query 暴露如下端口
 
