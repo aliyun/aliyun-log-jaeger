@@ -31,6 +31,7 @@ const (
 	suffixSpanLogstore     = ".span-logstore"
 	suffixSpanAggLogstore  = ".span-agg-logstore"
 	suffixMaxQueryDuration = ".max-query-duration"
+	suffixInitResourceFlag = ".init-resource-flag"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -61,6 +62,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				SpanLogstore:     "jaeger-span",
 				SpanAggLogstore:  "",
 				MaxQueryDuration: 24 * time.Hour,
+				InitResourceFlag: true,
 			},
 			namespace: primaryNamespace,
 		},
@@ -94,7 +96,7 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 	flagSet.Bool(
 		nsConfig.namespace+suffixAliCloudK8S,
 		nsConfig.AliCloudK8SFlag,
-		"Set this flag true if jeager deploy in AliCloud kubernetes cluster, and you don't need to set access key pair")
+		"Set this flag true if jaeger deploy in AliCloud kubernetes cluster, and you don't need to set access key pair")
 	flagSet.String(
 		nsConfig.namespace+suffixAccessKeyID,
 		nsConfig.AccessKeyID,
@@ -115,6 +117,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixMaxQueryDuration,
 		nsConfig.MaxQueryDuration,
 		"The maximum query duration for logstore in AliCloud Log Service")
+	flagSet.Bool(
+		nsConfig.namespace+suffixInitResourceFlag,
+		nsConfig.InitResourceFlag,
+		"The flag to specify whether to init resource in AliCloud Log Service")
 }
 
 // InitFromViper initializes Options with properties from viper
@@ -134,6 +140,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.SpanLogstore = v.GetString(cfg.namespace + suffixSpanLogstore)
 	cfg.SpanAggLogstore = v.GetString(cfg.namespace + suffixSpanAggLogstore)
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
+	cfg.InitResourceFlag = v.GetBool(cfg.namespace + suffixInitResourceFlag)
 }
 
 // GetPrimary returns primary configuration.

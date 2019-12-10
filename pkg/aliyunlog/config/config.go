@@ -44,12 +44,13 @@ type Configuration struct {
 	SpanAggLogstore    string
 	DependencyLogstore string
 	MaxQueryDuration   time.Duration
+	InitResourceFlag   bool
 }
 
 // LogstoreBuilder creates new sls.ClientInterface
 type LogstoreBuilder interface {
 	// NewClient return client, project, logstore, error
-	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, string, error)
+	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, string, bool, error)
 	GetMaxQueryDuration() time.Duration
 }
 
@@ -70,6 +71,9 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 	if c.SpanLogstore == "" {
 		c.SpanLogstore = source.SpanLogstore
 	}
+	if c.SpanAggLogstore == "" {
+		c.SpanAggLogstore = source.SpanAggLogstore
+	}
 	if c.DependencyLogstore == "" {
 		c.DependencyLogstore = source.DependencyLogstore
 	}
@@ -79,7 +83,7 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 }
 
 // NewClient return client, project, logstore, error
-func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, err error) {
+func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, initResourceFlag bool, err error) {
 	if c.AliCloudK8SFlag {
 		shutdown := make(chan struct{}, 1)
 		for i := 0; i < initEcsTokenTryMax; i++ {
@@ -89,7 +93,7 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 			}
 		}
 		if err != nil {
-			return nil, "", "", "", err
+			return nil, "", "", "", true, err
 		}
 
 	} else {
@@ -98,9 +102,9 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 	// @todo set user agent
 	//p.UserAgent = userAgent
 	if logstoreType == SpanType {
-		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, nil
+		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, c.InitResourceFlag,nil
 	}
-	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, nil
+	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, c.InitResourceFlag,nil
 }
 
 func (c *Configuration) GetMaxQueryDuration() time.Duration {

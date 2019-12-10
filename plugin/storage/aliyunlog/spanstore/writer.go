@@ -45,23 +45,29 @@ func NewSpanWriter(
 	client sls.ClientInterface,
 	project string,
 	logstore string,
+	initResourceFlag bool,
 	logger *zap.Logger,
 	metricsFactory metrics.Factory) (*SpanWriter, error) {
 	ctx := context.Background()
 
-	logger.Info("Prepare to init span writer resource")
-	// init LogService resources
-	err := InitSpanWriterLogstoreResource(client, project, logstore, logger)
-	if err != nil {
-		logger.Error("Failed to init span writer resource", zap.Error(err))
-		return nil, err
+	if initResourceFlag {
+		logger.Info("Prepare to init span writer resource")
+		// init LogService resources
+		if initResourceFlag {
+			err := InitSpanWriterLogstoreResource(client, project, logstore, logger)
+			if err != nil {
+				logger.Error("Failed to init span writer resource", zap.Error(err))
+				return nil, err
+			}
+		}
+		logger.Info("Init span writer resource successfully")
 	}
-	logger.Info("Init span writer resource successfully")
-	new_client, _ := client.(*sls.Client)
+
+	newClient, _ := client.(*sls.Client)
 	producerConfig := producer.GetDefaultProducerConfig()
-	producerConfig.AccessKeySecret = new_client.AccessKeySecret
-	producerConfig.AccessKeyID = new_client.AccessKeyID
-	producerConfig.Endpoint = new_client.Endpoint
+	producerConfig.AccessKeySecret = newClient.AccessKeySecret
+	producerConfig.AccessKeyID = newClient.AccessKeyID
+	producerConfig.Endpoint = newClient.Endpoint
 	producerInstance := producer.InitProducer(producerConfig)
 	producerInstance.Start()
 
