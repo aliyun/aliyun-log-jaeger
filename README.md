@@ -120,6 +120,13 @@ Please configure the log service according to the following steps.
 | tags.http.method | text | N/A |
 | tags.http.status_code | text | N/A |
 
+Create logstore to store agg data and create the below index for it.（Optional, if you need to use span agg logstore to speed up the query of service and operation, you need to create it）
+
+| Field Name | Type | Token |
+| --- | --- | --- |
+| operationName | text | N/A |
+| serviceName | text | N/A |
+
 ### Agent
 
 Jaeger client libraries expect jaeger-agent process to run locally on each host. The agent exposes the following ports:
