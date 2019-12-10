@@ -161,6 +161,7 @@ Parameter Description
 | aliyun-log.access-key-id | program argument | specify the account information for your log services |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services |
 | aliyun-log.span-logstore | program argument | specify the logstore used to store span |
+| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources |
 
 At default settings the collector exposes the following ports:
 
@@ -182,7 +183,8 @@ docker run \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
 ```
 
 If you have already built the corresponding binary file, take macOS as an example, you can run collector as follows:
@@ -193,7 +195,8 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.endpoint=<ENDPOINT> \
   --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
-  --aliyun-log.span-logstore=<SPAN_LOGSTORE>
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
 ```
 
 ### Query Service & UI
@@ -211,6 +214,7 @@ Parameters Description
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services |
 | aliyun-log.span-logstore | program argument | specify the logstore used to store span |
 | aliyun-log.span-agg-logstore | program argument | specify the logstore used to store agg data |
+| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources |
 | query.static-files | program argument | Specify the location of the UI static files |
 
 At default settings the query service exposes the following port(s):
@@ -233,6 +237,7 @@ docker run \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
   --aliyun-log.span-agg-logstore=<SPAN_AGG_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
   --query.static-files=/go/jaeger-ui/
 ```
 
@@ -246,6 +251,7 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
   --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
   --aliyun-log.span-agg-logstore=<SPAN_AGG_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
   --query.static-files=./jaeger-ui-build/build/
 ```
 
