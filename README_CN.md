@@ -122,6 +122,13 @@ make build-all-darwin
 | tags.http.method | text | N/A |
 | tags.http.status_code | text | N/A |
 
+* 创建用于存储聚合了 service 和 operation 数据的 logstore，并为下列字段创建索引。（可选，如果需要使用 span-agg-logstore 加快查询 service 和 operation 的速度才需创建）
+
+| 字段名 | 类型 | 分词符 |
+| --- | --- | --- |
+| operationName | text | N/A |
+| serviceName | text | N/A |
+
 ### Agent
 
 jaeger-agent 需要运行在包含 jaeger client libraries 应用程序的宿主机上。
