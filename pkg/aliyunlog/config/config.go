@@ -41,6 +41,7 @@ type Configuration struct {
 	AccessKeyID        string
 	AccessKeySecret    string
 	SpanLogstore       string
+	SpanAggLogstore    string
 	DependencyLogstore string
 	MaxQueryDuration   time.Duration
 }
@@ -48,7 +49,7 @@ type Configuration struct {
 // LogstoreBuilder creates new sls.ClientInterface
 type LogstoreBuilder interface {
 	// NewClient return client, project, logstore, error
-	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, error)
+	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, string, error)
 	GetMaxQueryDuration() time.Duration
 }
 
@@ -78,7 +79,7 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 }
 
 // NewClient return client, project, logstore, error
-func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, err error) {
+func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, err error) {
 	if c.AliCloudK8SFlag {
 		shutdown := make(chan struct{}, 1)
 		for i := 0; i < initEcsTokenTryMax; i++ {
@@ -88,7 +89,7 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 			}
 		}
 		if err != nil {
-			return nil, "", "", err
+			return nil, "", "", "", err
 		}
 
 	} else {
@@ -97,9 +98,9 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 	// @todo set user agent
 	//p.UserAgent = userAgent
 	if logstoreType == SpanType {
-		return client, c.Project, c.SpanLogstore, nil
+		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, nil
 	}
-	return client, c.Project, c.DependencyLogstore, nil
+	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, nil
 }
 
 func (c *Configuration) GetMaxQueryDuration() time.Duration {

@@ -29,6 +29,7 @@ const (
 	suffixAccessKeyID      = ".access-key-id"
 	suffixAccessKeySecret  = ".access-key-secret"
 	suffixSpanLogstore     = ".span-logstore"
+	suffixSpanAggLogstore  = ".span-agg-logstore"
 	suffixMaxQueryDuration = ".max-query-duration"
 )
 
@@ -58,6 +59,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				AccessKeyID:      "",
 				AccessKeySecret:  "",
 				SpanLogstore:     "jaeger-span",
+				SpanAggLogstore:  "",
 				MaxQueryDuration: 24 * time.Hour,
 			},
 			namespace: primaryNamespace,
@@ -105,6 +107,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixSpanLogstore,
 		nsConfig.SpanLogstore,
 		"The logstore to save span data in AliCloud Log Service")
+	flagSet.String(
+		nsConfig.namespace+suffixSpanAggLogstore,
+		nsConfig.SpanAggLogstore,
+		"The agg logstore to save span data in AliCloud Log Service")
 	flagSet.Duration(
 		nsConfig.namespace+suffixMaxQueryDuration,
 		nsConfig.MaxQueryDuration,
@@ -126,6 +132,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.AccessKeyID = v.GetString(cfg.namespace + suffixAccessKeyID)
 	cfg.AccessKeySecret = v.GetString(cfg.namespace + suffixAccessKeySecret)
 	cfg.SpanLogstore = v.GetString(cfg.namespace + suffixSpanLogstore)
+	cfg.SpanAggLogstore = v.GetString(cfg.namespace + suffixSpanAggLogstore)
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 }
 

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	sls "github.com/aliyun/aliyun-log-go-sdk"
+	"github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 	storageMetrics "github.com/jaegertracing/jaeger/storage/spanstore/metrics"
@@ -80,11 +80,12 @@ var (
 
 // SpanReader can query for and load traces from AliCloud Log Service
 type SpanReader struct {
-	ctx      context.Context
-	client   sls.ClientInterface
-	project  string
-	logstore string
-	logger   *zap.Logger
+	ctx         context.Context
+	client      sls.ClientInterface
+	project     string
+	logstore    string
+	aggLogstore string
+	logger      *zap.Logger
 	// The age of the oldest data we will look for.
 	maxLookback time.Duration
 }
@@ -93,15 +94,17 @@ type SpanReader struct {
 func NewSpanReader(client sls.ClientInterface,
 	project string,
 	logstore string,
+	aggLogstore string,
 	logger *zap.Logger,
 	maxLookback time.Duration,
 	metricsFactory metrics.Factory) spanstore.Reader {
-	return storageMetrics.NewReadMetricsDecorator(newSpanReader(client, project, logstore, logger, maxLookback), metricsFactory)
+	return storageMetrics.NewReadMetricsDecorator(newSpanReader(client, project, logstore, aggLogstore, logger, maxLookback), metricsFactory)
 }
 
 func newSpanReader(client sls.ClientInterface,
 	project string,
 	logstore string,
+	aggLogstore string,
 	logger *zap.Logger,
 	maxLookback time.Duration) *SpanReader {
 	ctx := context.Background()
@@ -110,6 +113,7 @@ func newSpanReader(client sls.ClientInterface,
 		client:      client,
 		project:     project,
 		logstore:    logstore,
+		aggLogstore: aggLogstore,
 		logger:      logger,
 		maxLookback: maxLookback,
 	}
@@ -209,26 +213,56 @@ func (s *SpanReader) GetServices() ([]string, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+	aggServiceNames := make([]string, 0)
+	if s.aggLogstore != "" {
+		queryExp := "__tag__:type:service | select distinct(serviceName) limit 10000"
+		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+			"Trying to get services from agg logstore")
+		aggResp, err := s.client.GetLogs(s.project, s.aggLogstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
+		if err != nil {
+			s.logger.With(zap.Error(err)).Error("Failed to get services from agg logstore")
+			return nil, errors.Wrap(err, "Failed to get services from agg logstore")
+		}
+		s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, aggResp.Progress)
+		aggServiceNames, err = logsToStringArray(aggResp.Logs, "serviceName")
+		if err != nil {
+			s.logger.With(zap.Error(err)).Error("Failed to convert logs to string array")
+			return nil, errors.Wrap(err, "Failed to convert logs to string array")
+		}
+		from = to - int64(900)
+	}
+
 	queryExp := fmt.Sprintf(
-		`| select distinct("%s") from (select "%s" from log limit 10000) limit %d`,
+		`| select distinct("%s") from (select "%s" from log limit 100000) limit %d`,
 		serviceNameField,
 		serviceNameField,
 		defaultServiceLimit,
 	)
-	maxLineNum := int64(0)
-	offset := int64(0)
-	reverse := false
-
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
-		"Trying to get services")
+		"Trying to get services from span logstore")
 
 	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, "Search services failed")
+		s.logger.With(zap.Error(err)).Error("Failed to get services from span logstore")
+		return nil, errors.Wrap(err, "Failed to get services from span logstore")
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
 
-	return logsToStringArray(resp.Logs, serviceNameField)
+	serviceNames, err := logsToStringArray(resp.Logs, serviceNameField)
+	if err != nil {
+		s.logger.With(zap.Error(err)).Error("Failed to convert logs to string array")
+		return nil, errors.Wrap(err, "Failed to convert logs to string array")
+	}
+	s.logger.Info(
+		"Get services successfully",
+		zap.Int("len(aggServiceNames)", len(aggServiceNames)),
+		zap.Int("len(serviceNames)", len(serviceNames)),
+	)
+
+	return unionStringArray(aggServiceNames, serviceNames)
 }
 
 // GetOperations returns all operations for a specific service traced by Jaeger
@@ -237,28 +271,78 @@ func (s *SpanReader) GetOperations(service string) ([]string, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
+	maxLineNum := int64(0)
+	offset := int64(0)
+	reverse := false
+	aggOperationNames := make([]string, 0)
+	if s.aggLogstore != "" {
+		queryExp := fmt.Sprintf(
+			`__tag__:type:process and serviceName: "%s" | select distinct(operationName) limit 10000 `,
+			service)
+		s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
+			fmt.Sprintf("Trying to get operations for service %s from agg logstore", service))
+		aggResp, err := s.client.GetLogs(s.project, s.aggLogstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
+		if err != nil {
+			s.logger.With(zap.Error(err)).Error(fmt.Sprintf("Failed to get operations for service %s from agg logstore", service))
+			return nil, errors.Wrap(err, fmt.Sprintf("Failed to get operations for service %s from agg logstore", service))
+		}
+		s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, aggResp.Progress)
+		aggOperationNames, err = logsToStringArray(aggResp.Logs, "operationName")
+		if err != nil {
+			s.logger.With(zap.Error(err)).Error("Failed to convert logs to string array")
+			return nil, errors.Wrap(err, "Failed to convert logs to string array")
+		}
+		from = to - int64(900)
+	}
+
 	queryExp := fmt.Sprintf(
-		`%s: "%s" | select distinct(%s) from (select %s from log limit 10000) limit %d`,
+		`%s: "%s" | select distinct(%s) from (select %s from log limit 100000) limit %d`,
 		serviceNameField,
 		service,
 		operationNameField,
 		operationNameField,
 		defaultOperationLimit,
 	)
-	maxLineNum := int64(0)
-	offset := int64(0)
-	reverse := false
 
 	s.logGetLogsParameters(topic, from, to, queryExp, maxLineNum, offset, reverse,
 		fmt.Sprintf("Trying to get operations for service %s", service))
 
 	resp, err := s.client.GetLogs(s.project, s.logstore, topic, from, to, queryExp, maxLineNum, offset, reverse)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Search operations for service %s failed", service))
+		s.logger.With(zap.Error(err)).Error(fmt.Sprintf("Failed to get operations for service %s from span logstore", service))
+		return nil, errors.Wrap(err, fmt.Sprintf("Failed to get operations for service %s from span logstore", service))
 	}
 	s.logProgressIncomplete(topic, from, to, queryExp, maxLineNum, offset, reverse, resp.Progress)
+	operationNames, err := logsToStringArray(resp.Logs, operationNameField)
+	if err != nil {
+		s.logger.With(zap.Error(err)).Error("Failed to convert logs to string array")
+		return nil, errors.Wrap(err, "Failed to convert logs to string array")
+	}
+	s.logger.Info(
+		"Get operations successfully",
+		zap.Int("len(aggOperationNames)", len(aggOperationNames)),
+		zap.Int("len(operationNames)", len(operationNames)),
+	)
+	return unionStringArray(aggOperationNames, operationNames)
+}
 
-	return logsToStringArray(resp.Logs, operationNameField)
+func unionStringArray(l, r []string) ([]string, error) {
+	if l == nil {
+		return r, nil
+	}
+	if r == nil {
+		return l, nil
+	}
+	m := make(map[string]bool)
+	for _, item := range l {
+		m[item] = true
+	}
+	for _, item := range r {
+		if _, ok := m[item]; !ok {
+			l = append(l, item)
+		}
+	}
+	return l, nil
 }
 
 func logsToStringArray(logs []map[string]string, key string) ([]string, error) {

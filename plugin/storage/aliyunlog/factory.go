@@ -40,6 +40,7 @@ type Factory struct {
 	client        sls.ClientInterface
 	spanProject   string
 	spanLogstore  string
+	spanAggLogstore string
 	depProject    string
 	depLogstore   string
 }
@@ -66,7 +67,7 @@ func (f *Factory) InitFromViper(v *viper.Viper) {
 func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger) error {
 	f.metricsFactory, f.logger = metricsFactory, logger
 	var err error
-	f.client, f.spanProject, f.spanLogstore, err = f.primaryConfig.NewClient(config.SpanType)
+	f.client, f.spanProject, f.spanLogstore,f.spanAggLogstore, err = f.primaryConfig.NewClient(config.SpanType)
 	if err != nil {
 		return err
 	}
@@ -88,6 +89,7 @@ func (f *Factory) CreateSpanReader() (spanstore.Reader, error) {
 		f.client,
 		f.spanProject,
 		f.spanLogstore,
+		f.spanAggLogstore,
 		f.logger,
 		cfg.GetMaxQueryDuration(),
 		f.metricsFactory,
