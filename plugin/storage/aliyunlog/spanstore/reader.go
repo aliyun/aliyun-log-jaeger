@@ -519,7 +519,11 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
-	return fmt.Sprintf(`%s: "%s"`, tagsPrefix+k, v)
+	if strings.ContainsAny(v, ": ")  && !strings.ContainsAny(v, "'\"") {
+		return fmt.Sprintf(`%s: "%s"`, tagsPrefix+k, v)
+	} else {
+		return fmt.Sprintf(`%s: %s`, tagsPrefix+k, v)
+	}
 }
 
 func (s *SpanReader) combineSubQueries(subQueries []string) string {
