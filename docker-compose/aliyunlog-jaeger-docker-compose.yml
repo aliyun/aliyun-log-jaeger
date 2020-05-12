@@ -24,7 +24,7 @@ services:
       restart: on-failure
 
     jaeger-agent:
-      image: jaegertracing/jaeger-agent
+      image: jaegertracing/jaeger-agent:1.6.0
       command: ["--collector.host-port=jaeger-collector:14267"]
       ports:
         - "5775:5775/udp"

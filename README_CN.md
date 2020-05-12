@@ -150,7 +150,7 @@ docker run \
   -p6831:6831/udp \
   -p6832:6832/udp \
   -p5778:5778/tcp \
-  jaegertracing/jaeger-agent --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
+  jaegertracing/jaeger-agent:1.6.0 --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
 ```
 
 如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 agent
