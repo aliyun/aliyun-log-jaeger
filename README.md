@@ -168,6 +168,7 @@ Parameter Description
 | aliyun-log.access-key-id | program argument | specify the account information for your log services | N | n/a |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services | N | n/a |
 | aliyun-log.span-logstore | program argument | specify the logstore used to store span | N | n/a |
+| aliyun-log.max-query-duration | program argument | specify the maximum query range. For example, --aliyun-log.max-query-duration=120h | N | n/a |
 | aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
 
 At default settings the collector exposes the following ports:
