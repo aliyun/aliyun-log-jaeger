@@ -105,7 +105,7 @@ func (p *AnnotationType) UnmarshalText(text []byte) error {
 // Conventionally, when the service name isn't known, service_name = "unknown".
 //  - Ipv6: IPv6 host address packed into 16 bytes. Ex Inet6Address.getBytes()
 type Endpoint struct {
-	Ipv4        int32  `thrift:"ipv4,1" json:"ipv4"`
+	Ipv4        uint32 `thrift:"ipv4,1" json:"ipv4"`
 	Port        int16  `thrift:"port,2" json:"port"`
 	ServiceName string `thrift:"service_name,3" json:"service_name"`
 	Ipv6        []byte `thrift:"ipv6,4" json:"ipv6,omitempty"`
@@ -115,7 +115,7 @@ func NewEndpoint() *Endpoint {
 	return &Endpoint{}
 }
 
-func (p *Endpoint) GetIpv4() int32 {
+func (p *Endpoint) GetIpv4() uint32 {
 	return p.Ipv4
 }
 
@@ -185,7 +185,7 @@ func (p *Endpoint) readField1(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadI32(); err != nil {
 		return thrift.PrependError("error reading field 1: ", err)
 	} else {
-		p.Ipv4 = v
+		p.Ipv4 = uint32(v)
 	}
 	return nil
 }

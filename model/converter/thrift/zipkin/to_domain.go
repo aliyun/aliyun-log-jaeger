@@ -199,7 +199,7 @@ func (td toDomain) generateProcess(zSpan *zipkincore.Span) (*model.Process, erro
 	return model.NewProcess(serviceName, tags), err
 }
 
-func (td toDomain) findServiceNameAndIP(zSpan *zipkincore.Span) (string, int32, error) {
+func (td toDomain) findServiceNameAndIP(zSpan *zipkincore.Span) (string, uint32, error) {
 	for _, a := range zSpan.Annotations {
 		if td.isCoreAnnotation(a) && a.Host != nil && a.Host.ServiceName != "" {
 			return a.Host.ServiceName, a.Host.Ipv4, nil
