@@ -128,6 +128,7 @@ func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
 }
 
 func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, error) {
+	from = from - 777600
 	s.logger.Info(
 		"Trying to get trace",
 		zap.String("traceID", traceID),
@@ -519,7 +520,7 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
-	if strings.ContainsAny(v, ": ")  && !strings.ContainsAny(v, "'\"") {
+	if strings.ContainsAny(v, ": ") && !strings.ContainsAny(v, "'\"") {
 		return fmt.Sprintf(`%s: "%s"`, tagsPrefix+k, v)
 	} else {
 		return fmt.Sprintf(`%s: %s`, tagsPrefix+k, v)
