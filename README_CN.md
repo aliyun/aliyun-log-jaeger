@@ -267,6 +267,66 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --query.static-files=./jaeger-ui-build/build/
 ```
 
+
+### Query Service & UI for SLS Trace
+
+Jaeger Query和UI支持使用SLS Trace的格式执行查询，该方式额外支持查询Dependency。
+
+* 注意：使用SLS Trace这种方式的前提条件是数据必须按照SLS Trace的方式接入，而不是使用本项目中的Jaeger Collector方式接入。具体接入方式可参考：[SLS Trace接入](https://help.aliyun.com/document_detail/208894.html)。
+
+参数说明如下
+
+| 参数名 | 参数类型 | 描述 | 是否可选 | 默认值 |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | 环境变量 | 填写为 aliyun-log-otel | N | n/a |
+| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project | N | n/a |
+| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint | N | n/a |
+| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID | N | n/a |
+| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret | N | n/a |
+| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore，名称为{instance-id}-traces | N | n/a |
+| aliyun-log.span-dep-logstore | 程序参数 | 指定用于存储Dependency数据的Logstore，名称为{instance-id}-traces-deps | Y | "" |
+| aliyun-log.max-query-duration | 程序参数 | 指定查询范围。 例如，--aliyun-log.max-query-duration=120h | Y | 24h |
+| query.static-files | 程序参数 | 指定 UI 静态文件的位置 | N | n/a |
+
+默认情况下，query 暴露如下端口
+
+| 端口号 | 协议 | 功能 |
+| --- | --- | --- |
+| 16686 | HTTP | 1. /api/* - API 端口路径 </br> 2. / - Jaeger UI 路径 |
+
+如果您的环境中有docker，可以使用如下方式运行 query
+```
+docker run \
+  -it --rm \
+  -p16686:16686 \
+  -e SPAN_STORAGE_TYPE=aliyun-log-otel \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.3.0 \
+  /go/bin/query-linux \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.span-dep-logstore=<SPAN_DEP_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
+  --query.static-files=/go/jaeger-ui/
+```
+
+如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 query
+```
+export SPAN_STORAGE_TYPE=aliyun-log-otel && \
+  ./cmd/query/query-darwin \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.span-dep-logstore=<SPAN_DEP_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false \
+  --query.static-files=./jaeger-ui-build/build/
+```
+
+
 ### Docker Compose
 
 为了简化部署，我们提供了一个 docker-compose 模板 [aliyunlog-jaeger-docker-compose.yml](/docker-compose/aliyunlog-jaeger-docker-compose.yml)。
