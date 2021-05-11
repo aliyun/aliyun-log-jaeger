@@ -24,6 +24,7 @@ import (
 
 	"github.com/jaegertracing/jaeger/plugin"
 	"github.com/jaegertracing/jaeger/plugin/storage/aliyunlog"
+	"github.com/jaegertracing/jaeger/plugin/storage/aliyunlogotel"
 	"github.com/jaegertracing/jaeger/plugin/storage/cassandra"
 	"github.com/jaegertracing/jaeger/plugin/storage/es"
 	"github.com/jaegertracing/jaeger/plugin/storage/memory"
@@ -34,6 +35,7 @@ import (
 
 const (
 	aliyunlogStorageType     = "aliyun-log"
+	aliyunlogStorageOtelType = "aliyun-log-otel"
 	cassandraStorageType     = "cassandra"
 	elasticsearchStorageType = "elasticsearch"
 	memoryStorageType        = "memory"
@@ -70,6 +72,8 @@ func (f *Factory) getFactoryOfType(factoryType string) (storage.Factory, error) 
 	switch factoryType {
 	case aliyunlogStorageType:
 		return aliyunlog.NewFactory(), nil
+	case aliyunlogStorageOtelType:
+		return aliyunlogotel.NewFactory(), nil
 	case cassandraStorageType:
 		return cassandra.NewFactory(), nil
 	case elasticsearchStorageType:

@@ -17,7 +17,7 @@ package config
 import (
 	"time"
 
-	"github.com/aliyun/aliyun-log-go-sdk"
+	sls "github.com/aliyun/aliyun-log-go-sdk"
 )
 
 // LogstoreType describes the type of a logstore
@@ -42,6 +42,7 @@ type Configuration struct {
 	AccessKeySecret    string
 	SpanLogstore       string
 	SpanAggLogstore    string
+	SpanDepLogstore    string
 	DependencyLogstore string
 	MaxQueryDuration   time.Duration
 	InitResourceFlag   bool
@@ -102,9 +103,9 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 	// @todo set user agent
 	//p.UserAgent = userAgent
 	if logstoreType == SpanType {
-		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, c.InitResourceFlag,nil
+		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, c.InitResourceFlag, nil
 	}
-	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, c.InitResourceFlag,nil
+	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, c.InitResourceFlag, nil
 }
 
 func (c *Configuration) GetMaxQueryDuration() time.Duration {
