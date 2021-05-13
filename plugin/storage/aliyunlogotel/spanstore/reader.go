@@ -124,7 +124,8 @@ func (s *SpanReader) GetTrace(traceID model.TraceID) (*model.Trace, error) {
 	currentTime := time.Now()
 	from := currentTime.Add(-s.maxLookback).Unix()
 	to := currentTime.Unix()
-	return s.getTrace(traceID.String(), from, to)
+	//return s.getTrace(traceID.String(), from, to)
+	return s.getTrace(fmt.Sprintf("%016x%016x", traceID.High, traceID.Low), from, to)
 }
 
 func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, error) {
