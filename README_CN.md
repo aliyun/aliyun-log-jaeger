@@ -300,7 +300,7 @@ docker run \
   -it --rm \
   -p16686:16686 \
   -e SPAN_STORAGE_TYPE=aliyun-log-otel \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.3.0 \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-query:0.3.1 \
   /go/bin/query-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
