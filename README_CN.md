@@ -244,8 +244,8 @@ Jaeger Query和UI支持使用SLS Trace的格式执行查询，该方式额外支
 docker run \
   -it --rm \
   -p14267:14267 -p14268:14268 -p9411:9411 \
-  -e SPAN_STORAGE_TYPE=aliyun-log \
-  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.2.4 \
+  -e SPAN_STORAGE_TYPE=aliyun-log-otel \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.3.1 \
   /go/bin/collector-linux \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
@@ -257,7 +257,7 @@ docker run \
 
 如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 collector
 ```
-export SPAN_STORAGE_TYPE=aliyun-log && \
+export SPAN_STORAGE_TYPE=aliyun-log-otel && \
   ./cmd/collector/collector-darwin \
   --aliyun-log.project=<PROJECT> \
   --aliyun-log.endpoint=<ENDPOINT> \
