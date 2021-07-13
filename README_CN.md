@@ -210,6 +210,63 @@ export SPAN_STORAGE_TYPE=aliyun-log && \
   --aliyun-log.init-resource-flag=false
 ```
 
+
+### Collector For SLS Trace
+
+Collector 是无状态的，因此您可以同时运行任意数量的 jaeger-collector。运行 collector 需要指定用于存储 Span 的存储系统类型。如果指定的存储系统类型为日志服务，您还需要提供连接日志服务所需的相关参数。
+
+Jaeger Query和UI支持使用SLS Trace的格式执行查询，该方式额外支持查询Dependency。
+
+* 注意：使用SLS Trace这种方式的前提条件是数据必须按照SLS Trace的方式接入（本项目中可以使用Collector For SLS Trace方式），而不能是使用本项目中的Jaeger Collector方式接入。具体接入方式可参考：[SLS Trace接入](https://help.aliyun.com/document_detail/208894.html)。
+
+参数说明如下
+
+| 参数名 | 参数类型 | 描述 | 是否可选 | 默认值 |
+| --- | --- | --- | -- | -- |
+| SPAN_STORAGE_TYPE | 环境变量 | 指定用于存储 Span 的存储系统类型。例如，aliyun-log-otel | N | n/a |
+| aliyun-log.project | 程序参数 | 指定用于存储 Span 的 Project | N | n/a |
+| aliyun-log.endpoint | 程序参数 | 指定用于存储 Span 的 Project 所在的 Endpoint | N | n/a |
+| aliyun-log.access-key-id | 程序参数 | 指定用户标识 Access Key ID | N | n/a |
+| aliyun-log.access-key-secret | 程序参数 | 指定用户标识 Access Key Secret | N | n/a |
+| aliyun-log.span-logstore | 程序参数 | 指定用于存储 Span 的 Logstore，名称为{instance-id}-traces | N | jaeger-traces |
+| aliyun-log.init-resource-flag | 程序参数 | 指定是否初始化相关的资源报表，该值在 aliyun-log-otel中无效 | Y | n/a |
+
+默认情况下，collector 暴露如下端口
+
+| 端口号 | 协议 | 功能 |
+| --- | --- | --- |
+| 14267 | TChannel | 用于接收  jaeger-agent 发送来的 jaeger.thrift 格式的 span |
+| 14268 | HTTP | 能直接接收来自客户端的 jaeger.thrift 格式的 span |
+| 9411 | HTTP | 能通过 JSON 或 Thrift 接收 Zipkin spans，默认关闭 |
+
+如果您的环境中有docker，可以使用如下方式运行 collector
+```
+docker run \
+  -it --rm \
+  -p14267:14267 -p14268:14268 -p9411:9411 \
+  -e SPAN_STORAGE_TYPE=aliyun-log \
+  registry.cn-hangzhou.aliyuncs.com/jaegertracing/jaeger-collector:0.2.4 \
+  /go/bin/collector-linux \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
+```
+
+如果您已构建好相应的二进制文件，这里以 macOS 为例，可以使用如下方式运行 collector
+```
+export SPAN_STORAGE_TYPE=aliyun-log && \
+  ./cmd/collector/collector-darwin \
+  --aliyun-log.project=<PROJECT> \
+  --aliyun-log.endpoint=<ENDPOINT> \
+  --aliyun-log.access-key-id=<ACCESS_KEY_ID> \
+  --aliyun-log.access-key-secret=<ACCESS_KEY_SECRET> \
+  --aliyun-log.span-logstore=<SPAN_LOGSTORE> \
+  --aliyun-log.init-resource-flag=false
+```
+
 ### Query Service & UI
 
 jaeger-query 提供了 API 端口以及 React/Javascript UI。该服务是无状态的，通常情况下它运行在 nginx 这样的负载均衡器后面。和 collector 类似，运行 query 同样需要指定后端存储系统类型。如果指定的存储系统类型为日志服务，您还需要提供连接日志服务所需的相关参数。此外，您还需要通过 query.static-files 参数指定 UI 静态文件的位置。
