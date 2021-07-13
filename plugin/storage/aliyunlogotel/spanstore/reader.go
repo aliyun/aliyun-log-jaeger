@@ -38,10 +38,11 @@ const (
 	referenceField     = "links"
 	flagsField         = "flags"
 	startTimeField     = "start"
+	endTimeField       = "end"
 	durationField      = "duration"
 	tagsPrefix         = "tags."
 	logsField          = "logs"
-	warningsField      = "Warnings"
+	warningsField      = "statusMessage"
 	serviceNameField   = "service"
 	processTagsPrefix  = "process.tags."
 
@@ -142,9 +143,9 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	offset := int64(0)
 	reverse := false
 
-	s.logger.Info("Use fix page size")
 
 	count, err := s.getSpansCountForTrace(traceID, topic, from, to)
+	s.logger.Info(fmt.Sprintf("Span count : %d, TraceID : %s, Duration : %d", count, traceID, to - from))
 	if err != nil {
 		return nil, err
 	}
@@ -186,12 +187,15 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 			break
 		}
 	}
+	s.logger.Info(fmt.Sprintf("Get Span expect : %d, return : %d, TraceID : %s, Duration : %d", count, len(spans), traceID, to - from))
+
 	if len(spans) == 0 {
 		return nil, spanstore.ErrTraceNotFound
 	}
 	trace := model.Trace{
 		Spans: spans,
 	}
+
 
 	return &trace, nil
 }

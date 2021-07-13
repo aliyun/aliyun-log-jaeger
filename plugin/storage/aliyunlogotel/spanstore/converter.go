@@ -68,23 +68,37 @@ func (c converter) fromSpanToLogs(span *model.Span) ([]*sls.Log, error) {
 	}, nil
 }
 
+func TraceIDToString(t *model.TraceID) string {
+	return fmt.Sprintf("%016x%016x", t.High, t.Low)
+}
+
 func (c converter) fromSpanToLogContents(span *model.Span) ([]*sls.LogContent, error) {
 	contents := make([]*sls.LogContent, 0)
-	contents = c.appendContents(contents, traceIDField, span.TraceID.String())
+	contents = c.appendContents(contents, traceIDField, TraceIDToString(&span.TraceID))
 	contents = c.appendContents(contents, spanIDField, span.SpanID.String())
 	contents = c.appendContents(contents, parentSpanIDField, span.ParentSpanID.String())
 	contents = c.appendContents(contents, operationNameField, span.OperationName)
 	contents = c.appendContents(contents, flagsField, fmt.Sprintf("%d", span.Flags))
 	contents = c.appendContents(contents, startTimeField, cast.ToString(span.StartTime.UnixNano()/1000))
 	contents = c.appendContents(contents, durationField, cast.ToString(span.Duration.Nanoseconds()/1000))
+	contents = c.appendContents(contents, endTimeField, cast.ToString((span.StartTime.UnixNano()+span.Duration.Nanoseconds())/1000))
 	contents = c.appendContents(contents, serviceNameField, span.Process.ServiceName)
+	contents = c.appendContents(contents, "statusCode", "UNSET")
 
+	tagsMap := make(map[string]string)
 	for _, tag := range span.Tags {
-		contents = c.appendContents(contents, tagsPrefix+tag.Key, tag.AsString())
+		tagsMap[tag.Key] = tag.AsString()
 	}
+
+	tagStr, _ := json.Marshal(tagsMap)
+	contents = c.appendContents(contents, "attribute", string(tagStr))
+
+	resourcesMap := make(map[string]string)
 	for _, tag := range span.Process.Tags {
-		contents = c.appendContents(contents, processTagsPrefix+tag.Key, tag.AsString())
+		resourcesMap[tag.Key] = tag.AsString()
 	}
+	resStr, _ := json.Marshal(resourcesMap)
+	contents = c.appendContents(contents, "resource", string(resStr))
 
 	contents, err := c.appendReferences(contents, span.References)
 	if err != nil {
@@ -130,12 +144,33 @@ func (c converter) appendReferences(contents []*sls.LogContent, references []mod
 	return append(contents, &content), nil
 }
 
+type SLSTraceLogs struct {
+	Attribute map[string]string `json:"attribute"`
+	Time      int64             `json:"time"` //nano
+}
+
+func fieldsToAttribute(fields []model.KeyValue) map[string]string {
+	m := make(map[string]string)
+	for _, keyVal := range fields {
+		m[keyVal.Key] = keyVal.AsString()
+	}
+	return m
+}
+
 func (c converter) appendLogs(contents []*sls.LogContent, logs []model.Log) ([]*sls.LogContent, error) {
 	if len(logs) < 1 {
 		return contents, nil
 	}
 
-	r, err := json.Marshal(logs)
+	slsLogs := make([]SLSTraceLogs, len(logs))
+	for i, l := range logs {
+		slsLogs[i] = SLSTraceLogs{
+			Time:      l.Timestamp.UnixNano(),
+			Attribute: fieldsToAttribute(l.Fields),
+		}
+	}
+
+	r, err := json.Marshal(slsLogs)
 	if err != nil {
 		return nil, err
 	}

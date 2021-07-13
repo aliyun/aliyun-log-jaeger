@@ -146,17 +146,5 @@ func makesureProjectExist(logger *zap.Logger, client sls.ClientInterface, projec
 
 // InitSpanWriterLogstoreResource create project, logstore, index, dashboard for jeager collector
 func InitSpanWriterLogstoreResource(client sls.ClientInterface, project string, logstore string, logger *zap.Logger) error {
-	if err := makesureProjectExist(logger, client, project); err != nil {
-		return err
-	}
-	if _, err := makesureLogstoreExist(logger, client, project, logstore, 2, 90); err != nil {
-		return err
-	}
-	if err := retryCreateIndex(logger, client, project, logstore, indexJSON); err != nil {
-		return err
-	}
-	if err := retryCreateDashboard(logger, client, project, logstore, dashboardJSON); err != nil {
-		return err
-	}
 	return nil
 }
