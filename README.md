@@ -223,6 +223,7 @@ Parameters Description
 | aliyun-log.span-agg-logstore | program argument | specify the logstore used to store agg data | Y | "" |
 | aliyun-log.max-query-duration | program argument | specify the maximum query range. For example, --aliyun-log.max-query-duration=120h | Y | 24h |
 | aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
+| aliyun-log.max-query-duration | program argument | specify the maximum query range. For example, --aliyun-log.max-query-duration=120h | N | n/a |
 | query.static-files | program argument | Specify the location of the UI static files | N | n/a |
 
 At default settings the query service exposes the following port(s):
