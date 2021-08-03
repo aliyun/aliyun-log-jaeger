@@ -102,7 +102,34 @@ Please configure the log service according to the following steps.
 
 * Login on [Aliyun Log Service Web Console](https://sls.console.aliyun.com/#/). 
 * Create project for storing span.
-* Create trace instance.
+* Create Trace Instance
+
+### Agent
+
+Jaeger client libraries expect jaeger-agent process to run locally on each host. The agent exposes the following ports:
+
+| Port | Protocol | Function |
+| --- | --- | --- |
+| 5775 | UDP | accept zipkin.thrift over compact thrift protocol |
+| 6831 | UDP | accept jaeger.thrift over compact thrift protocol |
+| 6832 | UDP | accept jaeger.thrift over binary thrift protocol |
+| 5778 | HTTP | serve configs, sampling strategies |
+
+If you have already installed docker, you can run agent as follows:
+```
+docker run \
+  --rm \
+  -p5775:5775/udp \
+  -p6831:6831/udp \
+  -p6832:6832/udp \
+  -p5778:5778/tcp \
+  jaegertracing/jaeger-agent:1.6.0 --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
+```
+
+If you have already built the corresponding binary file, take macOS as an example, you can run agent as follows:
+```
+./cmd/agent/agent-darwin --collector.host-port=localhost:14267
+```
 
 ### Collector
 
@@ -117,7 +144,7 @@ Parameter Description
 | aliyun-log.endpoint | program argument | specify the endpoint for your project | N | n/a |
 | aliyun-log.access-key-id | program argument | specify the account information for your log services | N | n/a |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services | N | n/a |
-| aliyun-log.span-logstore | program argument | specify the logstore used to store span | N | n/a |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span, The name look like {instance-id}-traces | N | n/a |
 | aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
 
 At default settings the collector exposes the following ports:
@@ -169,10 +196,9 @@ Parameters Description
 | aliyun-log.endpoint | program argument | specify the endpoint for your project | N | n/a |
 | aliyun-log.access-key-id | program argument | specify the account information for your log services | N | n/a |
 | aliyun-log.access-key-secret | program argument | specify the account information for your log services | N | n/a |
-| aliyun-log.span-logstore | program argument | specify the logstore used to store span | N | n/a |
-| aliyun-log.span-agg-logstore | program argument | specify the logstore used to store agg data | Y | "" |
+| aliyun-log.span-logstore | program argument | specify the logstore used to store span, the name looks like {instance-id}-traces | N | n/a |
+| aliyun-log.span-dep-logstore | program argument | specify the logstore used to store thee dependency raltionship data, the name looks like {instance-id}-traces-deps | Y | n/a |
 | aliyun-log.max-query-duration | program argument | specify the maximum query range. For example, --aliyun-log.max-query-duration=120h | Y | 24h |
-| aliyun-log.init-resource-flag	 | program argument | specify whether to init istio related resources | Y | true |
 | query.static-files | program argument | Specify the location of the UI static files | N | n/a |
 
 At default settings the query service exposes the following port(s):
