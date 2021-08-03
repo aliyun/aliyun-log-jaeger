@@ -101,58 +101,8 @@ make build-all-darwin
 Please configure the log service according to the following steps.
 
 * Login on [Aliyun Log Service Web Console](https://sls.console.aliyun.com/#/). 
-* Create project, logstore for storing span.
-* Create indexes for the following fields.
-
-| Field Name | Type | Token |
-| --- | --- | --- |
-| traceID | text | N/A |
-| spanID | text | N/A |
-| process.serviceName | text | N/A |
-| operationName | text | N/A |
-| startTime | long | N/A |
-| duration | long | N/A |
-
-**Note**: if you want to use tags as condition to find traces, you should alse create indexes for the tag fields. For example, the application generate the following tags http.method, http.status_code and you want to use them as condition to find traces, you should create indexes for them.
-
-| Field Name | Type | Token |
-| --- | --- | --- |
-| tags.http.method | text | N/A |
-| tags.http.status_code | text | N/A |
-
-Create logstore to store agg data and create the below index for it.（Optional, if you need to use span agg logstore to speed up the query of service and operation, you need to create it）
-
-| Field Name | Type | Token |
-| --- | --- | --- |
-| operationName | text | N/A |
-| serviceName | text | N/A |
-
-### Agent
-
-Jaeger client libraries expect jaeger-agent process to run locally on each host. The agent exposes the following ports:
-
-| Port | Protocol | Function |
-| --- | --- | --- |
-| 5775 | UDP | accept zipkin.thrift over compact thrift protocol |
-| 6831 | UDP | accept jaeger.thrift over compact thrift protocol |
-| 6832 | UDP | accept jaeger.thrift over binary thrift protocol |
-| 5778 | HTTP | serve configs, sampling strategies |
-
-If you have already installed docker, you can run agent as follows:
-```
-docker run \
-  --rm \
-  -p5775:5775/udp \
-  -p6831:6831/udp \
-  -p6832:6832/udp \
-  -p5778:5778/tcp \
-  jaegertracing/jaeger-agent:1.6.0 --collector.host-port=<JAEGER_COLLECTOR_HOST>:14267
-```
-
-If you have already built the corresponding binary file, take macOS as an example, you can run agent as follows:
-```
-./cmd/agent/agent-darwin --collector.host-port=localhost:14267
-```
+* Create project for storing span.
+* Create trace instance.
 
 ### Collector
 
