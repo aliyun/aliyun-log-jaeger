@@ -104,7 +104,7 @@ make build-all-darwin
 
 * 登录 [日志服务管理控制台](https://sls.console.aliyun.com/#/)。
 * 创建用于存储 span 的 project。
-* 创建Trace实例
+* 创建[Trace实例](https://sls.console.aliyun.com/lognext/trace)。
 
 ### Agent
 

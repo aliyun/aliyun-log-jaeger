@@ -102,7 +102,7 @@ Please configure the log service according to the following steps.
 
 * Login on [Aliyun Log Service Web Console](https://sls.console.aliyun.com/#/). 
 * Create project for storing span.
-* Create Trace Instance
+* Create [Trace Instance](https://sls.console.aliyun.com/lognext/trace).
 
 ### Agent
 
