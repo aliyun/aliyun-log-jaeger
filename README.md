@@ -1,3 +1,5 @@
+# Tenon
+
 This is the repository that contains object storage (Alibaba Could log service) plugin for Jaeger.
 
 ## About
@@ -23,13 +25,15 @@ cd /path/to/jaeger-sls
 go build
 ```
 
-## Parameter Flag
-
+## Parameter 
 (TODO)
+
 
 ## Start
-
-(TODO)
+Executing the following command to start jaeger with Tenon Plugin
+```shell
+GRPC_STORAGE_PLUGIN_BINARY="./jaeger-sls" GRPC_STORAGE_PLUGIN_CONFIGURATION_FILE=./config.yaml SPAN_STORAGE_TYPE=grpc-plugin JAEGER_DISABLED=true GRPC_STORAGE_PLUGIN_LOG_LEVEL=DEBUG ./all-in-one
+```
 
 ## License
 

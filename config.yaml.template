@@ -1,0 +1,8 @@
+sls_storage:
+  access_secret: ""
+  access_key: ""
+  project: ""
+  endpoint: ""
+  instance: ""
+  optional:
+    max_look_back: 7
