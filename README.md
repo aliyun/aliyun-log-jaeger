@@ -1,4 +1,4 @@
-# Tenon
+# SLS Storage Plugin
 
 This is the repository that contains object storage (Alibaba Could log service) plugin for Jaeger.
 
