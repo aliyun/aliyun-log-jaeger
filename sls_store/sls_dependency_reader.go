@@ -2,12 +2,12 @@ package sls_store
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	slsSdk "github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jaegertracing/jaeger/model"
-	"github.com/spf13/cast"
 )
 
 type slsDependencyReader struct {
@@ -33,21 +33,17 @@ func (s slsDependencyReader) GetDependencies(ctx context.Context, endTs time.Tim
 	s.logger.Info("GetDependencies", "Query", DependenciesQueryString, "Logstore", s.instance.serviceDependencyLogStore(), "DependencyLinks", response.Count)
 	var result []model.DependencyLink
 	for _, log := range response.Logs {
-		result = append(result, converDependencies(log))
+		count, _ := strconv.ParseFloat(log["count"], 0)
+		if log[ParentService] == "None" {
+			continue
+		}
+
+		result = append(result, model.DependencyLink{
+			Parent:    log[ParentService],
+			Child:     log[ChildService],
+			CallCount: uint64(count),
+		})
 	}
 
 	return result, nil
-}
-
-func converDependencies(log map[string]string) model.DependencyLink {
-	var parent string
-	if log[ParentService] != "None" {
-		parent = log[ParentService]
-	}
-
-	return model.DependencyLink{
-		Parent:    parent,
-		Child:     log[ChildService],
-		CallCount: cast.ToUint64(log["count"]),
-	}
 }
