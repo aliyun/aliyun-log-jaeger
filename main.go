@@ -31,13 +31,13 @@ type OptionalConfiguration struct {
 	MaxLookBack int64 `yaml:maxlookback`
 }
 
-func main() {
-	logger := hclog.New(&hclog.LoggerOptions{
-		Level:      hclog.Info,
-		Name:       "aliyun-log-jaeger-plugin",
-		JSONFormat: true,
-	})
+var logger = hclog.New(&hclog.LoggerOptions{
+	Level:      hclog.Info,
+	Name:       "aliyun-log-jaeger-plugin",
+	JSONFormat: true,
+})
 
+func main() {
 	flag.StringVar(&configPath, "config", "", "Path to the alibaba log jaeger plugin's configuration file")
 	flag.Parse()
 
@@ -66,14 +66,14 @@ func main() {
 
 func initialParameters(configPath string, logger hclog.Logger) (*Configuration, error) {
 	v := viper.New()
-	v.SetEnvPrefix("sls_storage")
 	v.AutomaticEnv()
+
 	if configPath != "" {
 		v.SetConfigFile(configPath)
-	}
-
-	if err := v.ReadInConfig(); err != nil {
-		return nil, err
+		if err := v.ReadInConfig(); err != nil {
+			logger.Error("Failed to read file.", "Exception", err)
+			return nil, err
+		}
 	}
 
 	configuration := &Configuration{}
@@ -85,38 +85,43 @@ func initialParameters(configPath string, logger hclog.Logger) (*Configuration, 
 }
 
 func (c *Configuration) InitFromViper(v *viper.Viper) error {
-	c.AccessSecret = v.GetString("sls_storage.access_secret")
+	c.AccessSecret = v.GetString("ACCESS_KEY_SECRET")
 	if c.AccessSecret == "" {
+		logger.Error("The AccessSecret can't be empty")
 		return errors.New("The AccessSecret can't be empty")
 	}
 
-	c.AccessKeyID = v.GetString("sls_storage.access_key")
-
+	c.AccessKeyID = v.GetString("ACCESS_KEY_ID")
 	if c.AccessKeyID == "" {
+		logger.Error("The access key id can't be empty")
 		return errors.New("The access key id can't be empty")
 	}
 
-	c.Project = v.GetString("sls_storage.project")
+	c.Project = v.GetString("PROJECT")
 	if c.Project == "" {
+		logger.Error("The project name can't be empty")
 		return errors.New("The project name can't be empty")
 	}
 
-	c.Endpoint = v.GetString("sls_storage.endpoint")
+	c.Endpoint = v.GetString("ENDPOINT")
 	if c.Endpoint == "" {
+		logger.Error("The endpoint can't be empty")
 		return errors.New("The endpoint can't be empty")
 	}
 
-	c.Instance = v.GetString("sls_storage.instance")
+	c.Instance = v.GetString("INSTANCE")
 	if c.Instance == "" {
+		logger.Error("The instance can't be empty")
 		return errors.New("The instance can't be empty")
 	}
 
 	c.Optional = &OptionalConfiguration{}
 
-	c.Optional.MaxLookBack = v.GetInt64("sls_storage.optional.max_look_back")
+	c.Optional.MaxLookBack = v.GetInt64("max_look_back")
 	if c.Optional.MaxLookBack == 0 {
 		c.Optional.MaxLookBack = DefaultLookBack
 	}
 
+	logger.Info("Parameters", "AccessSecret", c.AccessSecret, "AccessKeyID", c.AccessKeyID, "Project", c.Project, "Instance", c.Instance)
 	return nil
 }

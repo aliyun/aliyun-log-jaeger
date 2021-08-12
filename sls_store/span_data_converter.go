@@ -82,7 +82,7 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 			span.Tags = unmarshalTags(v)
 			break
 		case Resource:
-			process.Tags = unmarshalTags(v)
+			process.Tags, span.ProcessID = unmarshalResource(v)
 			break
 		case StatusCodeField:
 			if v == "ERROR" {
@@ -108,7 +108,7 @@ func (dataConverterImpl) ToSLSSpan(span *model.Span) ([]*slsSdk.LogContent, erro
 	contents = appendAttributeToLogContent(contents, ServiceName, span.Process.ServiceName)
 	contents = appendAttributeToLogContent(contents, StatusCode, "UNSET")
 	contents = appendAttributeToLogContent(contents, Attribute, marshalTags(span.Tags))
-	contents = appendAttributeToLogContent(contents, Resource, marshalTags(span.Process.Tags))
+	contents = appendAttributeToLogContent(contents, Resource, marshalResource(span.Process.Tags, span.ProcessID))
 
 	if refStr, err := marshalReferences(span.References); err != nil {
 		return nil, err
@@ -142,6 +142,31 @@ func appendWarnings(contents []*slsSdk.LogContent, warnings []string) ([]*slsSdk
 	}
 
 	return appendAttributeToLogContent(contents, StatusMessage, string(r)), nil
+}
+
+func marshalResource(v []model.KeyValue, processID string) string {
+	dataMap := keyValueToMap(v)
+	dataMap["ProcessID"] = processID
+
+	data, err := json.Marshal(dataMap)
+	if err != nil {
+		return fmt.Sprintf("%v", string(data))
+	}
+
+	return string(data)
+}
+
+func unmarshalResource(v string) (kvs []model.KeyValue, processID string) {
+	data := make(map[string]string)
+
+	err := json.Unmarshal([]byte(v), &data)
+	if err != nil {
+		kvs = append(kvs, model.String("tags", v))
+		return kvs, ""
+	}
+
+	return mapToKeyValue(data), data["ProcessID"]
+
 }
 
 func marshalTags(v []model.KeyValue) string {

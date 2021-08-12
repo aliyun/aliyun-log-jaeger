@@ -23,7 +23,7 @@ func (s slsSpanReader) GetServices(ctx context.Context) ([]string, error) {
 			s.logger.Error("Failed to GetServices", "Exception", err)
 		}
 	}()
-	from, to := buildSearchingData(7 * 24 * time.Hour)
+	from, to := buildSearchingData(1 * time.Hour)
 
 	response, e := s.client.GetLogs(s.instance.project(), s.instance.traceLogStore(), DefaultTopicName, from, to,
 		toGetServicesQuery(), DefaultFetchNumber, DefaultOffset, false)
@@ -50,7 +50,7 @@ func (s slsSpanReader) GetOperations(ctx context.Context, query spanstore.Operat
 		}
 	}()
 
-	from, to := buildSearchingData(7 * 24 * time.Hour)
+	from, to := buildSearchingData(1 * time.Hour)
 
 	response, e := s.client.GetLogs(s.instance.project(), s.instance.traceLogStore(), DefaultTopicName, from, to,
 		toOperationsQuery(query), DefaultFetchNumber, DefaultOffset, false)
@@ -105,7 +105,7 @@ func (s slsSpanReader) FindTraceIDs(ctx context.Context, query *spanstore.TraceQ
 }
 
 func (s slsSpanReader) GetTrace(ctx context.Context, traceID model.TraceID) (*model.Trace, error) {
-	from, to := buildSearchingData(7 * 24 * time.Hour)
+	from, to := buildSearchingData(1 * time.Hour)
 	return GetTraceWithTime(s.client, traceID, from, to, s.instance.project(), s.instance.traceLogStore())
 }
 
@@ -156,6 +156,7 @@ func GetTraceWithTime(client *slsSdk.Client, traceID model.TraceID, from, to int
 
 // mappingTraceData the method used to converting sls span data to jaeger span data.
 func mappingTraceData(logs []map[string]string) (*model.Trace, error) {
+	var processMapping []model.Trace_ProcessMapping
 	spans := make([]*model.Span, 0)
 	for _, data := range logs {
 		if spanData, err := dataConvert.ToJaegerSpan(data); err != nil {
@@ -165,8 +166,15 @@ func mappingTraceData(logs []map[string]string) (*model.Trace, error) {
 		}
 	}
 
+	for _, span := range spans {
+		processMapping = append(processMapping, model.Trace_ProcessMapping{
+			ProcessID: span.ProcessID,
+			Process:   *span.Process,
+		})
+	}
+
 	return &model.Trace{
 		Spans:      spans,
-		ProcessMap: nil,
+		ProcessMap: processMapping,
 	}, nil
 }

@@ -1,8 +1,5 @@
-sls_storage:
-  access_secret: ""
-  access_key: ""
-  project: ""
-  endpoint: ""
-  instance: ""
-  optional:
-    max_look_back: 7
+ACCESS_KEY_SECRET: ""
+ACCESS_KEY_ID: ""
+PROJECT: ""
+ENDPOINT: ""
+INSTANCE: ""

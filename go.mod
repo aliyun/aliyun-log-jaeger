@@ -4,13 +4,11 @@ go 1.16
 
 require (
 	github.com/aliyun/aliyun-log-go-sdk v0.1.21
-	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/grpc-ecosystem/grpc-opentracing v0.0.0-20180507213350-8e809c8a8645 // indirect
-	github.com/hashicorp/go-hclog v0.16.2 // indirect
+	github.com/gogo/protobuf v1.3.2
+	github.com/hashicorp/go-hclog v0.16.2
 	github.com/jaegertracing/jaeger v1.24.0
-	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/viper v1.8.1 // indirect
-	github.com/uber/jaeger-client-go v2.29.1+incompatible // indirect
+	github.com/spf13/cast v1.3.1
+	github.com/spf13/viper v1.8.1
 	google.golang.org/grpc v1.39.1 // indirect
 )
 
