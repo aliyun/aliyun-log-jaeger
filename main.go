@@ -5,10 +5,10 @@ import (
 	"flag"
 	"time"
 
+	"github.com/aliyun/aliyun-log-jaeger/sls_store"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc/shared"
-	"github.com/qiansheng91/jaeger-sls/sls_store"
 	"github.com/spf13/viper"
 )
 
