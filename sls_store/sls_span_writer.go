@@ -19,9 +19,14 @@ type slsSpanWriter struct {
 
 func (s slsSpanWriter) WriteSpan(ctx context.Context, span *model.Span) error {
 	if contents, err := convertToSpanLog(span, "", "0.0.0.0"); err != nil {
+		s.logger.Error("Failed to convert span", "spanID", span.SpanID)
 		return nil
 	} else {
-		return s.client.PutLogs(s.instance.project(), s.instance.traceLogStore(), contents)
+		e := s.client.PutLogs(s.instance.project(), s.instance.traceLogStore(), contents)
+		if e != nil {
+			s.logger.Error("Failed to send log.", "exception", e)
+		}
+		return e
 	}
 }
 

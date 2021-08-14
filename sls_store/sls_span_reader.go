@@ -88,6 +88,8 @@ func (s slsSpanReader) FindTraces(ctx context.Context, query *spanstore.TraceQue
 		if t, e := GetTraceWithTime(s.client, tid, query.StartTimeMin.Unix(), query.StartTimeMax.Unix(), s.instance.project(),
 			s.instance.traceLogStore()); e == nil {
 			result = append(result, t)
+		} else {
+			logger.Warn("Failed to get trace data.", "TID", tid, "Exception", e)
 		}
 	}
 
@@ -134,8 +136,9 @@ func GetTraceIDsWithQuery(client *slsSdk.Client, project, logstore string, query
 	var result []model.TraceID
 
 	for key, _ := range traceIDS {
-		traceId, e := model.TraceIDFromString(key)
-		if e != nil {
+		traceId, e1 := model.TraceIDFromString(key)
+		if e1 != nil {
+			logger.Warn("Failed to convert trace ID", "tid", key)
 			continue
 		}
 

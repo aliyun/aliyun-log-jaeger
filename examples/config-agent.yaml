@@ -1,0 +1,29 @@
+extensions:
+  health_check:
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:55681
+
+processors:
+  batch/traces:
+    timeout: 1s
+    send_batch_size: 50
+
+exporters:
+  otlp:
+    endpoint: otel-collector:4317
+    insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch/traces]
+      exporters: [otlp]
+
+  extensions: [health_check]

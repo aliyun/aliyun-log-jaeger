@@ -1,0 +1,130 @@
+version: '3.3'
+
+services:
+  mysql:
+    image: mysql:5.6
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
+    networks:
+      - backend
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "mysqlpwd"
+      TZ: "Asia/Shanghai"
+    volumes:
+      - "./examples/database.sql:/docker-entrypoint-initdb.d/database.sql"
+
+  jaeger:
+    build: .
+    networks:
+      - backend
+    ports:
+      - "6831:6831"
+      - "6832:6832"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+    environment:
+      TZ: "Asia/Shanghai"
+      ACCESS_KEY_SECRET: ""
+      ACCESS_KEY_ID: ""
+      PROJECT: ""
+      ENDPOINT: ""
+      INSTANCE: ""
+
+  tracing-poc:
+    image: iqfarhad/medium-poc_tracing:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    restart: always
+    environment:
+      PORT: ":8080"
+      DEBUG: "true"
+      TRACING_OPTION: "otel-collector"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-agent:4317"
+      MYSQL_URL: "root:mysqlpwd@tcp(mysql:3306)/sampleDB"
+      JAEGER_AGENT_NAME: "jaeger"
+      JAEGER_AGENT_PORT: "5775"
+      JAEGER_COLLECTOR_URL: "http://jaeger:14268/api/traces"
+      QUERYYER_URL: "http://tracing-queryyer:8081/getPerson/"
+      FORMATTER_URL: "http://tracing-formatter:8082/formatGreeting?"
+      TZ: "Asia/Shanghai"
+    entrypoint: "/go/bin/tracing-poc"
+    depends_on:
+      - otel-collector
+      - mysql
+      - tracing-queryyer
+
+  tracing-queryyer:
+    image: iqfarhad/medium-poc_tracing:latest
+    networks:
+      - backend
+    restart: always
+    environment:
+      PORT: ":8081"
+      DEBUG: "true"
+      TRACING_OPTION: "otel-collector"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-agent:4317"
+      JAEGER_AGENT_NAME: "jaeger"
+      JAEGER_AGENT_PORT: "5775"
+      MYSQL_URL: "root:mysqlpwd@tcp(mysql:3306)/sampleDB"
+      JAEGER_COLLECTOR_URL: "http://jaeger:14268/api/traces"
+      TZ: "Asia/Shanghai"
+    entrypoint: "/go/bin/queryyer"
+    depends_on:
+      - otel-collector
+
+  tracing-formatter:
+    image: iqfarhad/medium-poc_tracing:latest
+    ports:
+      - "8082:8082"
+    networks:
+      - backend
+    restart: always
+    environment:
+      PORT: ":8082"
+      DEBUG: "true"
+      TRACING_OPTION: "otel-collector"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-agent:4317"
+      JAEGER_AGENT_NAME: "jaeger"
+      JAEGER_AGENT_PORT: "5775"
+      MYSQL_URL: "root:mysqlpwd@tcp(mysql:3306)/sampleDB"
+      JAEGER_COLLECTOR_URL: "http://jaeger:14268/api/traces"
+      TZ: "Asia/Shanghai"
+    entrypoint: "/go/bin/formatter"
+    depends_on:
+      - otel-collector
+
+  otel-agent:
+    image: otel/opentelemetry-collector:latest
+    command: [ "--config=/etc/otel-agent-config.yaml", "--log-level=DEBUG" ]
+    volumes:
+      - ./examples/config-agent.yaml:/etc/otel-agent-config.yaml
+    ports:
+      - "1777:1777"
+      - "55679:55679"
+      - "13133"
+      - "4317:4317"
+      - "55681:55681"
+    networks:
+      - backend
+    environment:
+      TZ: "Asia/Shanghai"
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    command: [ "--config=/etc/otel-collector-config.yaml", "--log-level=DEBUG" ]
+    volumes:
+      - ./examples/config-collector.yaml:/etc/otel-collector-config.yaml
+    networks:
+      - backend
+    environment:
+      TZ: "Asia/Shanghai"
+
+networks:
+  backend:

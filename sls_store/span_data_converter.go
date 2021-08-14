@@ -33,6 +33,7 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 		case TraceID:
 			traceID, err := model.TraceIDFromString(v)
 			if err != nil {
+				logger.Warn("Failed to convert traceId", "key", k, "value", v)
 				return nil, err
 			}
 			span.TraceID = traceID
@@ -40,6 +41,7 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 		case SpanID:
 			spanID, err := model.SpanIDFromString(v)
 			if err != nil {
+				logger.Warn("Failed to convert spanID", "key", k, "value", v)
 				return nil, err
 			}
 			span.SpanID = spanID
@@ -62,6 +64,7 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 		case Links:
 			refs, err := unmarshalReferences(v)
 			if err != nil {
+				logger.Warn("Failed to convert links", "key", k, "value", v, "exception", err)
 				return nil, err
 			}
 			span.References = refs
@@ -69,6 +72,7 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 		case Logs:
 			logs, err := unmarshalLogs(v)
 			if err != nil {
+				logger.Warn("Failed to convert logs", "key", k, "value", v, "exception", err)
 				return nil, err
 			}
 			span.Logs = logs
@@ -111,20 +115,22 @@ func (dataConverterImpl) ToSLSSpan(span *model.Span) ([]*slsSdk.LogContent, erro
 	contents = appendAttributeToLogContent(contents, Resource, marshalResource(span.Process.Tags, span.ProcessID))
 
 	if refStr, err := marshalReferences(span.References); err != nil {
+		logger.Warn("Failed to convert references", "spanID", span.SpanID, "reference", span.References, "exception", err)
 		return nil, err
 	} else {
 		contents = appendAttributeToLogContent(contents, Links, refStr)
-
 	}
 
 	if logsStr, err := marshalLogs(span.Logs); err != nil {
+		logger.Warn("Failed to convert logs", "spanID", span.SpanID, "logs", span.Logs, "exception", err)
 		return nil, err
 	} else {
-		contents = appendAttributeToLogContent(contents, Logs, string(logsStr))
+		contents = appendAttributeToLogContent(contents, Logs, logsStr)
 	}
 
 	contents, err := appendWarnings(contents, span.Warnings)
 	if err != nil {
+		logger.Warn("Failed to convert warnings", "spanID", span.SpanID, "warnings", span.Warnings, "exception", err)
 		return nil, err
 	}
 
@@ -223,8 +229,8 @@ func unmarshalLogs(s string) ([]model.Log, error) {
 		return nil, nil
 	}
 
-	var logs []SpanLog
-	if err := json.Unmarshal([]byte(s), logs); err != nil {
+	logs := make([]SpanLog, 0)
+	if err := json.Unmarshal([]byte(s), &logs); err != nil {
 		return nil, err
 	}
 
@@ -243,7 +249,17 @@ func marshalReferences(refs []model.SpanRef) (string, error) {
 		return "[]", nil
 	}
 
-	r, err := json.Marshal(refs)
+	rs := make([]map[string]string, 0)
+
+	for _, ref := range refs {
+		r := make(map[string]string)
+		r["TraceID"] = ref.TraceID.String()
+		r["SpanID"] = ref.SpanID.String()
+		r["RefType"] = ref.RefType.String()
+		rs = append(rs, r)
+	}
+
+	r, err := json.Marshal(rs)
 	if err != nil {
 		return "", err
 	}
@@ -256,11 +272,32 @@ func unmarshalReferences(s string) (refs []model.SpanRef, err error) {
 		return nil, nil
 	}
 
-	refs = make([]model.SpanRef, 0)
-	err = json.Unmarshal([]byte(s), &refs)
+	rs := make([]map[string]string, 0)
+
+	err = json.Unmarshal([]byte(s), &rs)
 	if err != nil {
 		return nil, err
 	}
+
+	for _, r := range rs {
+		tid, e1 := model.TraceIDFromString(r["TraceID"])
+		if e1 != nil {
+			return nil, e1
+		}
+
+		spanID, e2 := model.SpanIDFromString(r["SpanID"])
+		if e2 != nil {
+			return nil, e2
+		}
+
+		spanType := model.SpanRefType_value[r["RefType"]]
+		refs = append(refs, model.SpanRef{
+			TraceID: tid,
+			SpanID:  spanID,
+			RefType: model.SpanRefType(spanType),
+		})
+	}
+
 	return refs, nil
 }
 
