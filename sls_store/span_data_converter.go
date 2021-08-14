@@ -103,7 +103,7 @@ func (dataConverterImpl) ToSLSSpan(span *model.Span) ([]*slsSdk.LogContent, erro
 	contents := make([]*slsSdk.LogContent, 0)
 	contents = appendAttributeToLogContent(contents, TraceID, TraceIDToString(&span.TraceID))
 	contents = appendAttributeToLogContent(contents, SpanID, span.SpanID.String())
-	contents = appendAttributeToLogContent(contents, ParentSpanID, fmt.Sprintf("%d", span.ParentSpanID()))
+	contents = appendAttributeToLogContent(contents, ParentSpanID, span.ParentSpanID().String())
 	contents = appendAttributeToLogContent(contents, OperationName, span.OperationName)
 	contents = appendAttributeToLogContent(contents, Flags, fmt.Sprintf("%d", span.Flags))
 	contents = appendAttributeToLogContent(contents, StartTime, cast.ToString(span.StartTime.UnixNano()/1000))
