@@ -20,15 +20,15 @@ The Alibab Cloud log service  :heart:  Jaeger
 
 1. Login [Alibaba Cloud log service Console](https://sls.console.aliyun.com/lognext/profile)
 2. Create Project
-   [CrateProject](./images/create_project.gif)
+   ![CrateProject](./images/create_project.gif)
 3. Create Trace Instance
-   [CreateTraceInstance](./images/create_trace_instance.gif)
+   ![CreateTraceInstance](./images/create_trace_instance.gif)
 4. Modify Docker compose file
-   [ModifyConfigure](./images/modify_configure.gif)
+   ![ModifyConfigure](./images/modify_configure.gif)
 5. Start Demo
-   [StartingDemo](./images/start_demos.gif)
+   ![StartingDemo](./images/start_demos.gif)
 6. Having fun with Jaeger and SLS.    :grinning:
-   [HavingFunWithJaegerAndSLS](./images/havingfun.gif)
+   ![HavingFunWithJaegerAndSLS](./images/havingfun.gif)
 
 ## Build/Compile
 
