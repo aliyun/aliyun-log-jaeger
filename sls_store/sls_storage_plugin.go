@@ -52,17 +52,19 @@ func (s SlsJaegerStoragePlugin) ArchiveSpanWriter() spanstore.Writer {
 
 func (s SlsJaegerStoragePlugin) SpanReader() spanstore.Reader {
 	return &slsSpanReader{
-		client:   buildSLSSdkClient(s),
-		instance: s.instance,
-		logger:   s.logger,
+		client:      buildSLSSdkClient(s),
+		instance:    s.instance,
+		maxLookBack: s.maxLookBack,
+		logger:      s.logger,
 	}
 }
 
 func (s SlsJaegerStoragePlugin) SpanWriter() spanstore.Writer {
 	return &slsSpanWriter{
-		client:   buildSLSSdkClient(s),
-		instance: s.instance,
-		logger:   s.logger,
+		client:      buildSLSSdkClient(s),
+		instance:    s.instance,
+		maxLookBack: s.maxLookBack,
+		logger:      s.logger,
 	}
 }
 

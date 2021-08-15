@@ -23,7 +23,7 @@ func (s slsSpanReader) GetServices(ctx context.Context) ([]string, error) {
 			s.logger.Error("Failed to GetServices", "Exception", err)
 		}
 	}()
-	from, to := buildSearchingData(1 * time.Hour)
+	from, to := buildSearchingData(s.maxLookBack)
 
 	response, e := s.client.GetLogs(s.instance.project(), s.instance.traceLogStore(), DefaultTopicName, from, to,
 		toGetServicesQuery(), DefaultFetchNumber, DefaultOffset, false)
@@ -50,7 +50,7 @@ func (s slsSpanReader) GetOperations(ctx context.Context, query spanstore.Operat
 		}
 	}()
 
-	from, to := buildSearchingData(1 * time.Hour)
+	from, to := buildSearchingData(s.maxLookBack)
 
 	response, e := s.client.GetLogs(s.instance.project(), s.instance.traceLogStore(), DefaultTopicName, from, to,
 		toOperationsQuery(query), DefaultFetchNumber, DefaultOffset, false)
@@ -107,7 +107,7 @@ func (s slsSpanReader) FindTraceIDs(ctx context.Context, query *spanstore.TraceQ
 }
 
 func (s slsSpanReader) GetTrace(ctx context.Context, traceID model.TraceID) (*model.Trace, error) {
-	from, to := buildSearchingData(1 * time.Hour)
+	from, to := buildSearchingData(s.maxLookBack)
 	return GetTraceWithTime(s.client, traceID, from, to, s.instance.project(), s.instance.traceLogStore())
 }
 

@@ -81,8 +81,6 @@ services:
 
   tracing-formatter:
     image: iqfarhad/medium-poc_tracing:latest
-    ports:
-      - "8082:8082"
     networks:
       - backend
     restart: always

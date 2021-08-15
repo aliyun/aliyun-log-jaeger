@@ -3,32 +3,27 @@ package main
 import (
 	"errors"
 	"flag"
-	"time"
-
 	"github.com/aliyun/aliyun-log-jaeger/sls_store"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc/shared"
 	"github.com/spf13/viper"
+	"time"
 )
 
 const (
-	DefaultLookBack = 7
+	DefaultLookBack = 6
 )
 
 var configPath string
 
 type Configuration struct {
-	Endpoint     string                 `yaml:"endpoint"`
-	AccessKeyID  string                 `yaml:"accessKeyId"`
-	AccessSecret string                 `yaml:"accessSecret"`
-	Project      string                 `yaml:"project"`
-	Instance     string                 `yaml:"instance"`
-	Optional     *OptionalConfiguration `yaml:"optionals"`
-}
-
-type OptionalConfiguration struct {
-	MaxLookBack int64 `yaml:maxlookback`
+	Endpoint     string        `yaml:"endpoint"`
+	AccessKeyID  string        `yaml:"accessKeyId"`
+	AccessSecret string        `yaml:"accessSecret"`
+	Project      string        `yaml:"project"`
+	Instance     string        `yaml:"instance"`
+	MaxLookBack  time.Duration `yaml:maxLookBack`
 }
 
 var logger = hclog.New(&hclog.LoggerOptions{
@@ -53,7 +48,7 @@ func main() {
 		configuration.AccessSecret,
 		configuration.Project,
 		configuration.Instance,
-		7*24*time.Hour,
+		configuration.MaxLookBack,
 		logger,
 	)
 
@@ -115,13 +110,16 @@ func (c *Configuration) InitFromViper(v *viper.Viper) error {
 		return errors.New("The instance can't be empty")
 	}
 
-	c.Optional = &OptionalConfiguration{}
-
-	c.Optional.MaxLookBack = v.GetInt64("max_look_back")
-	if c.Optional.MaxLookBack == 0 {
-		c.Optional.MaxLookBack = DefaultLookBack
+	lookBack := v.GetInt32("MAX_LOOK_BACK")
+	if lookBack == 0 {
+		lookBack = DefaultLookBack
 	}
 
-	logger.Info("Parameters", "AccessSecret", c.AccessSecret, "AccessKeyID", c.AccessKeyID, "Project", c.Project, "Instance", c.Instance)
+	if lookBack > 3*24 {
+		logger.Warn("Setting a larger value for MAX_LOOK_BACK will affect the query efficiency.", "MAX_LOOK_BACK", lookBack)
+	}
+
+	c.MaxLookBack = time.Duration(lookBack) * time.Hour
+	logger.Info("Parameters", "AccessSecret", c.AccessSecret, "AccessKeyID", c.AccessKeyID, "Project", c.Project, "Instance", c.Instance, "Endpoint", c.Endpoint, "MaxLookBack", c.MaxLookBack)
 	return nil
 }
