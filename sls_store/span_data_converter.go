@@ -3,6 +3,7 @@ package sls_store
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	slsSdk "github.com/aliyun/aliyun-log-go-sdk"
@@ -113,6 +114,11 @@ func (dataConverterImpl) ToSLSSpan(span *model.Span) ([]*slsSdk.LogContent, erro
 	contents = appendAttributeToLogContent(contents, StatusCode, "UNSET")
 	contents = appendAttributeToLogContent(contents, Attribute, marshalTags(span.Tags))
 	contents = appendAttributeToLogContent(contents, Resource, marshalResource(span.Process.Tags, span.ProcessID))
+	if spankind, ok := span.GetSpanKind(); ok {
+		contents = appendAttributeToLogContent(contents, SpanKind, strings.ToLower(spankind))
+	} else {
+		contents = appendAttributeToLogContent(contents, SpanKind, "")
+	}
 
 	if refStr, err := marshalReferences(span.References); err != nil {
 		logger.Warn("Failed to convert references", "spanID", span.SpanID, "reference", span.References, "exception", err)
