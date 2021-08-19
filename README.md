@@ -20,15 +20,15 @@ The Alibab Cloud log service  :heart:  Jaeger
 
 1. Login [Alibaba Cloud log service Console](https://sls.console.aliyun.com/lognext/profile)
 2. Create Project
-   [CrateProject](./images/create_project.gif)
+   ![CrateProject](./images/create_project.gif)
 3. Create Trace Instance
-   [CreateTraceInstance](./images/create_trace_instance.gif)
+   ![CreateTraceInstance](./images/create_trace_instance.gif)
 4. Modify Docker compose file
-   [ModifyConfigure](./images/modify_configure.gif)
+   ![ModifyConfigure](./images/modify_configure.gif)
 5. Start Demo
-   [StartingDemo](./images/start_demos.gif)
+   ![StartingDemo](./images/start_demos.gif)
 6. Having fun with Jaeger and SLS.    :grinning:
-   [HavingFunWithJaegerAndSLS](./images/havingfun.gif)
+   ![HavingFunWithJaegerAndSLS](./images/havingfun.gif)
 
 ## Build/Compile
 
@@ -48,7 +48,7 @@ export ACCESS_KEY_ID: ""
 export PROJECT: ""
 export ENDPOINT: ""
 export INSTANCE: ""
-GRPC_STORAGE_PLUGIN_BINARY="./jaeger-sls" GRPC_STORAGE_PLUGIN_CONFIGURATION_FILE=./config.yaml SPAN_STORAGE_TYPE=grpc-plugin JAEGER_DISABLED=true GRPC_STORAGE_PLUGIN_LOG_LEVEL=DEBUG ./all-in-one
+GRPC_STORAGE_PLUGIN_BINARY="./jaeger-sls" SPAN_STORAGE_TYPE=grpc-plugin JAEGER_DISABLED=true GRPC_STORAGE_PLUGIN_LOG_LEVEL=DEBUG ./all-in-one
 ```
 
 ## License
