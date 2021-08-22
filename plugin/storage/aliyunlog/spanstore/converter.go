@@ -27,8 +27,8 @@ import (
 )
 
 // FromSpan converts a model.Span to a log record
-func FromSpan(span *model.Span, topic, source string) (*sls.LogGroup, error) {
-	return converter{}.fromSpan(span, topic, source)
+func FromSpan(span *model.Span, topic, source string, rules TagAppendRules) (*sls.LogGroup, error) {
+	return converter{}.fromSpan(span, topic, source, rules)
 }
 
 // ToSpan converts a log record to a model.Span
@@ -43,8 +43,8 @@ func ToTraces(logs []map[string]string) ([]*model.Trace, error) {
 
 type converter struct{}
 
-func (c converter) fromSpan(span *model.Span, topic, source string) (*sls.LogGroup, error) {
-	logs, err := c.fromSpanToLogs(span)
+func (c converter) fromSpan(span *model.Span, topic, source string, rules TagAppendRules) (*sls.LogGroup, error) {
+	logs, err := c.fromSpanToLogs(span, rules)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func (c converter) fromSpan(span *model.Span, topic, source string) (*sls.LogGro
 	}, nil
 }
 
-func (c converter) fromSpanToLogs(span *model.Span) ([]*sls.Log, error) {
-	contents, err := c.fromSpanToLogContents(span)
+func (c converter) fromSpanToLogs(span *model.Span, rules TagAppendRules) ([]*sls.Log, error) {
+	contents, err := c.fromSpanToLogContents(span, rules)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c converter) fromSpanToLogs(span *model.Span) ([]*sls.Log, error) {
 	}, nil
 }
 
-func (c converter) fromSpanToLogContents(span *model.Span) ([]*sls.LogContent, error) {
+func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules) ([]*sls.LogContent, error) {
 	contents := make([]*sls.LogContent, 0)
 	contents = c.appendContents(contents, traceIDField, span.TraceID.String())
 	contents = c.appendContents(contents, spanIDField, span.SpanID.String())
@@ -80,8 +80,18 @@ func (c converter) fromSpanToLogContents(span *model.Span) ([]*sls.LogContent, e
 	contents = c.appendContents(contents, serviceNameField, span.Process.ServiceName)
 
 	for _, tag := range span.Tags {
+		if k, ok := rules.SpanTagRules()[tag.Key]; ok {
+			contents = c.appendContents(contents, tagsPrefix+k.tagKey, k.tagValue)
+		}
 		contents = c.appendContents(contents, tagsPrefix+tag.Key, tag.AsString())
 	}
+
+	for key, value := range rules.OperationPrefixRules() {
+		if strings.HasPrefix(span.OperationName, key) {
+			contents = c.appendContents(contents, tagsPrefix+value.tagKey, value.tagValue)
+		}
+	}
+
 	for _, tag := range span.Process.Tags {
 		contents = c.appendContents(contents, processTagsPrefix+tag.Key, tag.AsString())
 	}

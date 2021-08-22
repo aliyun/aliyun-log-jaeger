@@ -33,6 +33,7 @@ const (
 	suffixSpanDepLogstore  = ".span-dep-logstore"
 	suffixMaxQueryDuration = ".max-query-duration"
 	suffixInitResourceFlag = ".init-resource-flag"
+	suffixTagAppenderRule  = ".tag-appender-rules"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -64,6 +65,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				SpanAggLogstore:  "",
 				MaxQueryDuration: 24 * time.Hour,
 				InitResourceFlag: true,
+				TagAppendRuleFile: "",
 			},
 			namespace: primaryNamespace,
 		},
@@ -126,6 +128,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixInitResourceFlag,
 		nsConfig.InitResourceFlag,
 		"The flag to specify whether to init resource in AliCloud Log Service")
+	flagSet.String(
+		nsConfig.namespace+suffixTagAppenderRule,
+		nsConfig.TagAppendRuleFile,
+		"The file of rule which appending tag to span.")
 }
 
 // InitFromViper initializes Options with properties from viper
@@ -147,6 +153,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.DependencyLogstore = v.GetString(cfg.namespace + suffixSpanDepLogstore)
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 	cfg.InitResourceFlag = v.GetBool(cfg.namespace + suffixInitResourceFlag)
+	cfg.TagAppendRuleFile = v.GetString(cfg.namespace + suffixTagAppenderRule)
 }
 
 // GetPrimary returns primary configuration.

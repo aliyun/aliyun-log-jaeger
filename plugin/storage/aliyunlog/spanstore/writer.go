@@ -32,22 +32,17 @@ type spanWriterMetrics struct {
 }
 
 type SpanWriter struct {
-	ctx           context.Context
-	client        sls.ClientInterface
-	project       string
-	logstore      string
-	logger        *zap.Logger
-	writerMetrics spanWriterMetrics
-	producer      *producer.Producer
+	ctx            context.Context
+	client         sls.ClientInterface
+	project        string
+	logstore       string
+	logger         *zap.Logger
+	writerMetrics  spanWriterMetrics
+	producer       *producer.Producer
+	tagAppendRules TagAppendRules
 }
 
-func NewSpanWriter(
-	client sls.ClientInterface,
-	project string,
-	logstore string,
-	initResourceFlag bool,
-	logger *zap.Logger,
-	metricsFactory metrics.Factory) (*SpanWriter, error) {
+func NewSpanWriter(client sls.ClientInterface, project string, logstore string, initResourceFlag bool, logger *zap.Logger, metricsFactory metrics.Factory, tagAppendRule string) (*SpanWriter, error) {
 	ctx := context.Background()
 
 	if initResourceFlag {
@@ -70,6 +65,7 @@ func NewSpanWriter(
 	producerConfig.Endpoint = newClient.Endpoint
 	producerInstance := producer.InitProducer(producerConfig)
 	producerInstance.Start()
+	tagAppendRules := initTagAppendRules(tagAppendRule)
 
 	return &SpanWriter{
 		ctx:      ctx,
@@ -78,6 +74,7 @@ func NewSpanWriter(
 		logstore: logstore,
 		logger:   logger,
 		producer: producerInstance,
+		tagAppendRules: tagAppendRules,
 		writerMetrics: spanWriterMetrics{
 			putLogs: storageMetrics.NewWriteMetrics(metricsFactory, "putLogs"),
 		},
@@ -90,7 +87,7 @@ func (s *SpanWriter) Close() error {
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
-	logGroup, err := FromSpan(span, "", "0.0.0.0")
+	logGroup, err := FromSpan(span, "", "0.0.0.0", s.tagAppendRules)
 	if err != nil {
 		s.logError(span, err, "Failed to convert span to logGroup", s.logger)
 	}
