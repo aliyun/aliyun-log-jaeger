@@ -81,14 +81,14 @@ func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules)
 
 	for _, tag := range span.Tags {
 		if k, ok := rules.SpanTagRules()[tag.Key]; ok {
-			contents = c.appendContents(contents, tagsPrefix+k.tagKey, k.tagValue)
+			contents = c.appendContents(contents, tagsPrefix+k.TagKey, k.TagValue)
 		}
 		contents = c.appendContents(contents, tagsPrefix+tag.Key, tag.AsString())
 	}
 
 	for key, value := range rules.OperationPrefixRules() {
 		if strings.HasPrefix(span.OperationName, key) {
-			contents = c.appendContents(contents, tagsPrefix+value.tagKey, value.tagValue)
+			contents = c.appendContents(contents, tagsPrefix+value.TagKey, value.TagKey)
 		}
 	}
 
