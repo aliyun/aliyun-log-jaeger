@@ -43,11 +43,11 @@ go build
 
 Executing the following command to start jaeger with Tenon Plugin
 ```shell
-export ACCESS_KEY_SECRET: ""
-export ACCESS_KEY_ID: ""
-export PROJECT: ""
-export ENDPOINT: ""
-export INSTANCE: ""
+export ACCESS_KEY_SECRET=""
+export ACCESS_KEY_ID=""
+export PROJECT=""
+export ENDPOINT=""
+export INSTANCE=""
 GRPC_STORAGE_PLUGIN_BINARY="./jaeger-sls" SPAN_STORAGE_TYPE=grpc-plugin JAEGER_DISABLED=true GRPC_STORAGE_PLUGIN_LOG_LEVEL=DEBUG ./all-in-one
 ```
 
