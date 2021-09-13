@@ -16,6 +16,9 @@ assessment quickly, and the SLS service itself provides 99.9% availability and 1
 
 The Alibab Cloud log service  :heart:  Jaeger
 
+
+![Image](./images/havingfun.jpg)
+
 ## Quick Start
 
 1. Login [Alibaba Cloud log service Console](https://sls.console.aliyun.com/lognext/profile)
@@ -29,6 +32,8 @@ The Alibab Cloud log service  :heart:  Jaeger
    ![StartingDemo](./images/start_demos.gif)
 6. Having fun with Jaeger and SLS.    :grinning:
    ![HavingFunWithJaegerAndSLS](./images/havingfun.gif)
+
+Also, We also provide an [online demo](https://sls.aliyun.com/).
 
 ## Build/Compile
 
