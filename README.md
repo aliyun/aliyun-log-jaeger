@@ -21,7 +21,7 @@ The Alibab Cloud log service  :heart:  Jaeger
 
 ## Quick Start
 
-You can follow the steps to use the plugin. We also provide an [online demo](https://sls.aliyun.com/) to demonstrate the features of SLS Trace.
+You can follow the steps to use the plugin. We also provide an [online demo](https://sls.aliyun.com) to demonstrate the features of SLS Trace.
 
 1. Login [Alibaba Cloud log service Console](https://sls.console.aliyun.com/lognext/profile)
 2. Create Project
