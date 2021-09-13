@@ -21,6 +21,8 @@ The Alibab Cloud log service  :heart:  Jaeger
 
 ## Quick Start
 
+You can follow the steps to use the plugin. We also provide an [online demo](https://sls.aliyun.com/) to demonstrate the features of SLS Trace.
+
 1. Login [Alibaba Cloud log service Console](https://sls.console.aliyun.com/lognext/profile)
 2. Create Project
    ![CrateProject](./images/create_project.gif)
@@ -33,7 +35,6 @@ The Alibab Cloud log service  :heart:  Jaeger
 6. Having fun with Jaeger and SLS.    :grinning:
    ![HavingFunWithJaegerAndSLS](./images/havingfun.gif)
 
-Also, We also provide an [online demo](https://sls.aliyun.com/).
 
 ## Build/Compile
 
@@ -48,11 +49,11 @@ go build
 
 Executing the following command to start jaeger with Tenon Plugin
 ```shell
-export ACCESS_KEY_SECRET=""
-export ACCESS_KEY_ID=""
-export PROJECT=""
-export ENDPOINT=""
-export INSTANCE=""
+export ACCESS_KEY_SECRET: ""
+export ACCESS_KEY_ID: ""
+export PROJECT: ""
+export ENDPOINT: ""
+export INSTANCE: ""
 GRPC_STORAGE_PLUGIN_BINARY="./jaeger-sls" SPAN_STORAGE_TYPE=grpc-plugin JAEGER_DISABLED=true GRPC_STORAGE_PLUGIN_LOG_LEVEL=DEBUG ./all-in-one
 ```
 
