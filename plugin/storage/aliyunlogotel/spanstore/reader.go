@@ -143,9 +143,8 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	offset := int64(0)
 	reverse := false
 
-
 	count, err := s.getSpansCountForTrace(traceID, topic, from, to)
-	s.logger.Info(fmt.Sprintf("Span count : %d, TraceID : %s, Duration : %d", count, traceID, to - from))
+	s.logger.Info(fmt.Sprintf("Span count : %d, TraceID : %s, Duration : %d", count, traceID, to-from))
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +186,7 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 			break
 		}
 	}
-	s.logger.Info(fmt.Sprintf("Get Span expect : %d, return : %d, TraceID : %s, Duration : %d", count, len(spans), traceID, to - from))
+	s.logger.Info(fmt.Sprintf("Get Span expect : %d, return : %d, TraceID : %s, Duration : %d", count, len(spans), traceID, to-from))
 
 	if len(spans) == 0 {
 		return nil, spanstore.ErrTraceNotFound
@@ -195,7 +194,6 @@ func (s *SpanReader) getTrace(traceID string, from, to int64) (*model.Trace, err
 	trace := model.Trace{
 		Spans: spans,
 	}
-
 
 	return &trace, nil
 }
@@ -524,10 +522,15 @@ func (s *SpanReader) buildDurationQuery(durationMin time.Duration, durationMax t
 }
 
 func (s *SpanReader) buildTagQuery(k string, v string) string {
+	keyPrefix := "attribute."
+	if strings.HasPrefix(k, keyPrefix) {
+		keyPrefix = ""
+	}
+
 	if strings.ContainsAny(v, ": ") && !strings.ContainsAny(v, "'\"") {
-		return fmt.Sprintf(`%s: "%s"`, tagsPrefix+k, v)
+		return fmt.Sprintf(`%s: "%s"`, keyPrefix+k, v)
 	} else {
-		return fmt.Sprintf(`%s: %s`, tagsPrefix+k, v)
+		return fmt.Sprintf(`%s: %s`, keyPrefix+k, v)
 	}
 }
 
