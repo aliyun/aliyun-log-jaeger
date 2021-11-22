@@ -91,6 +91,7 @@ func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules)
 		if k, ok := rules.SpanTagRules()[tag.Key]; ok {
 			attributeMap[k.TagKey] = k.TagValue
 		}
+		attributeMap[tag.Key] = tag.AsString()
 	}
 
 	for key, value := range rules.OperationPrefixRules() {
