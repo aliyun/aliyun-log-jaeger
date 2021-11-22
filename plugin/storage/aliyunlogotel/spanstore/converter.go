@@ -86,21 +86,20 @@ func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules)
 	contents = c.appendContents(contents, serviceNameField, span.Process.ServiceName)
 	contents = c.appendContents(contents, "statusCode", "UNSET")
 
-	tagsMap := make(map[string]string)
+	attributeMap := make(map[string]string)
 	for _, tag := range span.Tags {
 		if k, ok := rules.SpanTagRules()[tag.Key]; ok {
-			contents = c.appendContents(contents, tagsPrefix+k.TagKey, k.TagValue)
+			attributeMap[k.TagKey] = k.TagValue
 		}
-		tagsMap[tag.Key] = tag.AsString()
 	}
 
 	for key, value := range rules.OperationPrefixRules() {
 		if strings.HasPrefix(span.OperationName, key) {
-			contents = c.appendContents(contents, tagsPrefix+value.TagKey, value.TagValue)
+			attributeMap[value.TagKey] = value.TagValue
 		}
 	}
 
-	tagStr, _ := json.Marshal(tagsMap)
+	tagStr, _ := json.Marshal(attributeMap)
 	contents = c.appendContents(contents, "attribute", string(tagStr))
 
 	resourcesMap := make(map[string]string)
