@@ -53,7 +53,7 @@ func initTagAppendRules(ruleFile string) TagAppendRules {
 
 	if d, ok := data[OperationWithPrefix]; ok {
 		for k, v := range d {
-			spanTagsAppendRules[k] = v
+			operationPrefixAppendRules[k] = v
 		}
 	}
 

@@ -33,6 +33,7 @@ const (
 	suffixMaxQueryDuration = ".max-query-duration"
 	suffixInitResourceFlag = ".init-resource-flag"
 	suffixTagAppenderRule  = ".tag-appender-rules"
+	suffixKindRewriteRule  = ".kind-rewrite-rules"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -65,6 +66,7 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				MaxQueryDuration: 24 * time.Hour,
 				InitResourceFlag: true,
 				TagAppendRuleFile: "",
+				KindRewriteRuleFile: "",
 			},
 			namespace: primaryNamespace,
 		},
@@ -127,6 +129,10 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.namespace+suffixTagAppenderRule,
 		nsConfig.TagAppendRuleFile,
 		"The file of rule which appending tag to span.")
+	flagSet.String(
+		nsConfig.namespace+suffixKindRewriteRule,
+		nsConfig.KindRewriteRuleFile,
+		"The file of rule which rewriting span kind.")
 }
 
 // InitFromViper initializes Options with properties from viper
@@ -148,6 +154,7 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 	cfg.InitResourceFlag = v.GetBool(cfg.namespace + suffixInitResourceFlag)
 	cfg.TagAppendRuleFile = v.GetString(cfg.namespace + suffixTagAppenderRule)
+	cfg.KindRewriteRuleFile = v.GetString(cfg.namespace + suffixKindRewriteRule)
 }
 
 // GetPrimary returns primary configuration.

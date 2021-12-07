@@ -45,6 +45,7 @@ const (
 	warningsField      = "statusMessage"
 	serviceNameField   = "service"
 	processTagsPrefix  = "process.tags."
+	spanKindField  = "kind"
 
 	defaultServiceLimit    = 1000
 	defaultOperationLimit  = 1000

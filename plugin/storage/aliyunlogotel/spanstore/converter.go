@@ -28,8 +28,8 @@ import (
 )
 
 // FromSpan converts a model.Span to a log record
-func FromSpan(span *model.Span, topic, source string, file TagAppendRules) (*sls.LogGroup, error) {
-	return converter{}.fromSpan(span, topic, source, file)
+func FromSpan(span *model.Span, topic, source string, file TagAppendRules, rule KindRewriteRules) (*sls.LogGroup, error) {
+	return converter{}.fromSpan(span, topic, source, file, rule)
 }
 
 // ToSpan converts a log record to a model.Span
@@ -44,8 +44,8 @@ func ToTraces(logs []map[string]string) ([]*model.Trace, error) {
 
 type converter struct{}
 
-func (c converter) fromSpan(span *model.Span, topic, source string, file TagAppendRules) (*sls.LogGroup, error) {
-	logs, err := c.fromSpanToLogs(span, file)
+func (c converter) fromSpan(span *model.Span, topic, source string, file TagAppendRules, rule KindRewriteRules) (*sls.LogGroup, error) {
+	logs, err := c.fromSpanToLogs(span, file, rule)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (c converter) fromSpan(span *model.Span, topic, source string, file TagAppe
 	}, nil
 }
 
-func (c converter) fromSpanToLogs(span *model.Span, file TagAppendRules) ([]*sls.Log, error) {
-	contents, err := c.fromSpanToLogContents(span, file)
+func (c converter) fromSpanToLogs(span *model.Span, file TagAppendRules, rule KindRewriteRules) ([]*sls.Log, error) {
+	contents, err := c.fromSpanToLogContents(span, file, rule)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func TraceIDToString(t *model.TraceID) string {
 	return fmt.Sprintf("%016x%016x", t.High, t.Low)
 }
 
-func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules) ([]*sls.LogContent, error) {
+func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagAppendRules, kindRewriteRules KindRewriteRules) ([]*sls.LogContent, error) {
 	contents := make([]*sls.LogContent, 0)
 	contents = c.appendContents(contents, traceIDField, TraceIDToString(&span.TraceID))
 	contents = c.appendContents(contents, spanIDField, span.SpanID.String())
@@ -88,15 +88,25 @@ func (c converter) fromSpanToLogContents(span *model.Span, rules TagAppendRules)
 
 	attributeMap := make(map[string]string)
 	for _, tag := range span.Tags {
-		if k, ok := rules.SpanTagRules()[tag.Key]; ok {
+		if k, ok := tagAppendRules.SpanTagRules()[tag.Key]; ok {
 			attributeMap[k.TagKey] = k.TagValue
 		}
 		attributeMap[tag.Key] = tag.AsString()
+
+		if k, ok := kindRewriteRules.SpanKindRules()[tag.Key]; ok {
+			c.appendContents(contents, spanKindField, k)
+		}
 	}
 
-	for key, value := range rules.OperationPrefixRules() {
+	for key, value := range tagAppendRules.OperationPrefixRules() {
 		if strings.HasPrefix(span.OperationName, key) {
 			attributeMap[value.TagKey] = value.TagValue
+		}
+	}
+
+	for key, value := range kindRewriteRules.OperationPrefixRules() {
+		if strings.HasPrefix(span.OperationName, key) {
+			c.appendContents(contents, spanKindField, value)
 		}
 	}
 
