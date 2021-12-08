@@ -94,7 +94,7 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 		attributeMap[tag.Key] = tag.AsString()
 
 		if k, ok := kindRewriteRules.SpanKindRules()[tag.Key]; ok {
-			c.appendContents(contents, spanKindField, k)
+			contents = c.appendContents(contents, spanKindField, k)
 		}
 	}
 
@@ -106,7 +106,7 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 
 	for key, value := range kindRewriteRules.OperationPrefixRules() {
 		if strings.HasPrefix(span.OperationName, key) {
-			c.appendContents(contents, spanKindField, value)
+			contents = c.appendContents(contents, spanKindField, value)
 		}
 	}
 
@@ -137,8 +137,6 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 
 	return contents, nil
 }
-
-
 
 func (c converter) appendContents(contents []*sls.LogContent, k, v string) []*sls.LogContent {
 	content := sls.LogContent{

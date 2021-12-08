@@ -68,6 +68,7 @@ var (
 
 	someTags = model.KeyValues{
 		model.String(someStringTagKey, someStringTagValue),
+		model.String("db.instance", "db instance"),
 		model.Bool(someBoolTagKey, someBoolTagValue),
 		model.Int64(someLongTagKey, someLongTagValue),
 		model.Float64(someDoubleTagKey, someDoubleTagValue),
@@ -194,7 +195,7 @@ func TestToSpan(t *testing.T) {
 
 func TestFromSpan(t *testing.T) {
 	span := getTestJaegerSpan()
-	logGroup, err := FromSpan(span, "topic", "0.0.0.0", nil, nil)
+	logGroup, err := FromSpan(span, "topic", "0.0.0.0", initTagAppendRules(""), initKindRewriteRules(""))
 	assert.Nil(t, err)
 	assert.Equal(t, "topic", *logGroup.Topic)
 	assert.Equal(t, "0.0.0.0", *logGroup.Source)
