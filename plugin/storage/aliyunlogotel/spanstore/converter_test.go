@@ -195,7 +195,7 @@ func TestToSpan(t *testing.T) {
 
 func TestFromSpan(t *testing.T) {
 	span := getTestJaegerSpan()
-	logGroup, err := FromSpan(span, "topic", "0.0.0.0", initTagAppendRules(""), initKindRewriteRules(""))
+	logGroup, err := FromSpan(span, "topic", "0.0.0.0", initTagAppendRules("", false), initKindRewriteRules("", false))
 	assert.Nil(t, err)
 	assert.Equal(t, "topic", *logGroup.Topic)
 	assert.Equal(t, "0.0.0.0", *logGroup.Source)

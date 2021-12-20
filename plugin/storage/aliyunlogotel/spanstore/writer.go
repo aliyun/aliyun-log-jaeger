@@ -43,7 +43,7 @@ type SpanWriter struct {
 	rewriteKindRuleFile KindRewriteRules
 }
 
-func NewSpanWriter(client sls.ClientInterface, project string, logstore string, initResourceFlag bool, logger *zap.Logger, metricsFactory metrics.Factory, appendTagFile string, rewriteKindFile string) (*SpanWriter, error) {
+func NewSpanWriter(client sls.ClientInterface, project string, logstore string, initResourceFlag bool, logger *zap.Logger, metricsFactory metrics.Factory, appendTagFile string, rewriteKindFile string, appendTagRuleFileFlag bool, rewriteKindRuleFileFlag bool) (*SpanWriter, error) {
 	ctx := context.Background()
 
 	if initResourceFlag {
@@ -66,8 +66,8 @@ func NewSpanWriter(client sls.ClientInterface, project string, logstore string, 
 	producerConfig.Endpoint = newClient.Endpoint
 	producerInstance := producer.InitProducer(producerConfig)
 	producerInstance.Start()
-	appendTagRuleFile := initTagAppendRules(appendTagFile);
-	rewriteKindRuleFile := initKindRewriteRules(rewriteKindFile);
+	appendTagRuleFile := initTagAppendRules(appendTagFile, appendTagRuleFileFlag);
+	rewriteKindRuleFile := initKindRewriteRules(rewriteKindFile, rewriteKindRuleFileFlag);
 
 	return &SpanWriter{
 		ctx:      ctx,

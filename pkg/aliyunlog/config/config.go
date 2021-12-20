@@ -35,25 +35,27 @@ const initEcsTokenSleep = time.Second * 5
 
 // Configuration describes the configuration properties needed to connect to an AliCloud Log Service cluster
 type Configuration struct {
-	Project            string
-	Endpoint           string
-	AliCloudK8SFlag    bool
-	AccessKeyID        string
-	AccessKeySecret    string
-	SpanLogstore       string
-	SpanAggLogstore    string
-	SpanDepLogstore    string
-	DependencyLogstore string
-	MaxQueryDuration   time.Duration
-	InitResourceFlag   bool
-	TagAppendRuleFile string
-	KindRewriteRuleFile string
+	Project                 string
+	Endpoint                string
+	AliCloudK8SFlag         bool
+	AccessKeyID             string
+	AccessKeySecret         string
+	SpanLogstore            string
+	SpanAggLogstore         string
+	SpanDepLogstore         string
+	DependencyLogstore      string
+	MaxQueryDuration        time.Duration
+	InitResourceFlag        bool
+	TagAppendRuleFile       string
+	KindRewriteRuleFile     string
+	TagAppendRuleFileFlag   bool
+	KindRewriteRuleFileFlag bool
 }
 
 // LogstoreBuilder creates new sls.ClientInterface
 type LogstoreBuilder interface {
 	// NewClient return client, project, logstore, error
-	NewClient(logstoreType LogstoreType) (sls.ClientInterface, string, string, string, bool, string, string, error)
+	NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, initResourceFlag bool, tagAppendRuleFile string, kindRewriteRuleFile string, flag bool, fileFlag bool, err error)
 	GetMaxQueryDuration() time.Duration
 }
 
@@ -92,7 +94,7 @@ func (c *Configuration) ApplyDefaults(source *Configuration) {
 }
 
 // NewClient return client, project, logstore, error
-func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, initResourceFlag bool, tagAppendRuleFile string, kindRewriteRuleFile string,err error) {
+func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientInterface, project string, logstore string, aggLogstore string, initResourceFlag bool, tagAppendRuleFile string, kindRewriteRuleFile string, flag bool, fileFlag bool, err error) {
 	if c.AliCloudK8SFlag {
 		shutdown := make(chan struct{}, 1)
 		for i := 0; i < initEcsTokenTryMax; i++ {
@@ -102,7 +104,7 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 			}
 		}
 		if err != nil {
-			return nil, "", "", "", true, "", "", err
+			return nil, "", "", "", true, "", "", flag, fileFlag, err
 		}
 
 	} else {
@@ -111,9 +113,9 @@ func (c *Configuration) NewClient(logstoreType LogstoreType) (client sls.ClientI
 	// @todo set user agent
 	//p.UserAgent = userAgent
 	if logstoreType == SpanType {
-		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, c.InitResourceFlag, c.TagAppendRuleFile, c.KindRewriteRuleFile,nil
+		return client, c.Project, c.SpanLogstore, c.SpanAggLogstore, c.InitResourceFlag, c.TagAppendRuleFile, c.KindRewriteRuleFile, c.TagAppendRuleFileFlag, c.KindRewriteRuleFileFlag, nil
 	}
-	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, c.InitResourceFlag, c.TagAppendRuleFile, c.KindRewriteRuleFile,nil
+	return client, c.Project, c.DependencyLogstore, c.SpanAggLogstore, c.InitResourceFlag, c.TagAppendRuleFile, c.KindRewriteRuleFile,c.TagAppendRuleFileFlag, c.KindRewriteRuleFileFlag, nil
 }
 
 func (c *Configuration) GetMaxQueryDuration() time.Duration {

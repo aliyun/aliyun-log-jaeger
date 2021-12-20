@@ -45,7 +45,9 @@ type Factory struct {
 	depLogstore       string
 	initResourceFlag  bool
 	tagAppendRuleFile string
+	tagAppendRuleFileFlag bool
 	kindRewriteRuleFile string
+	kindRewriteRuleFileFlag bool
 }
 
 // NewFactory creates a new Factory.
@@ -70,7 +72,7 @@ func (f *Factory) InitFromViper(v *viper.Viper) {
 func (f *Factory) Initialize(metricsFactory metrics.Factory, logger *zap.Logger) error {
 	f.metricsFactory, f.logger = metricsFactory, logger
 	var err error
-	f.client, f.spanProject, f.spanLogstore, f.spanAggLogstore, f.initResourceFlag, f.tagAppendRuleFile,f.kindRewriteRuleFile, err = f.primaryConfig.NewClient(config.SpanType)
+	f.client, f.spanProject, f.spanLogstore, f.spanAggLogstore, f.initResourceFlag, f.tagAppendRuleFile, f.kindRewriteRuleFile, f.tagAppendRuleFileFlag, f.kindRewriteRuleFileFlag, err = f.primaryConfig.NewClient(config.SpanType)
 	if err != nil {
 		return err
 	}
@@ -115,7 +117,9 @@ func (f *Factory) CreateSpanWriter() (spanstore.Writer, error) {
 		f.logger,
 		f.metricsFactory,
 		f.tagAppendRuleFile,
-		f.kindRewriteRuleFile)
+		f.kindRewriteRuleFile,
+		f.tagAppendRuleFileFlag,
+		f.kindRewriteRuleFileFlag)
 }
 
 // CreateDependencyReader implements storage.Factory

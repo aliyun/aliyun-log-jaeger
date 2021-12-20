@@ -87,15 +87,20 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 	contents = c.appendContents(contents, "statusCode", "UNSET")
 
 	attributeMap := make(map[string]string)
+
+	var contained bool
+	var kind string
+
 	for _, tag := range span.Tags {
+		if k, ok := kindRewriteRules.SpanKindRules()[tag.Key]; ok {
+			contained = true
+			kind = k;
+		}
+
 		if k, ok := tagAppendRules.SpanTagRules()[tag.Key]; ok {
 			attributeMap[k.TagKey] = k.TagValue
 		}
 		attributeMap[tag.Key] = tag.AsString()
-
-		if k, ok := kindRewriteRules.SpanKindRules()[tag.Key]; ok {
-			contents = c.appendContents(contents, spanKindField, k)
-		}
 	}
 
 	for key, value := range tagAppendRules.OperationPrefixRules() {
@@ -106,8 +111,13 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 
 	for key, value := range kindRewriteRules.OperationPrefixRules() {
 		if strings.HasPrefix(span.OperationName, key) {
-			contents = c.appendContents(contents, spanKindField, value)
+			contained = true
+			kind = value
 		}
+	}
+
+	if contained {
+		contents = c.appendContents(contents, spanKindField, kind)
 	}
 
 	tagStr, _ := json.Marshal(attributeMap)

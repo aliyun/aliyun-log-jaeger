@@ -25,7 +25,14 @@ func (t kindRules) OperationPrefixRules() map[string]string {
 	return t.OperationNameRules
 }
 
-func initKindRewriteRules(ruleFile string) KindRewriteRules {
+func initKindRewriteRules(ruleFile string, flag bool) KindRewriteRules {
+	if !flag {
+		return &kindRules{
+			SpanTagRule:        make(map[string]string),
+			OperationNameRules: make(map[string]string),
+		}
+	}
+
 	var spanTagsRewriteRules = map[string]string{
 		"db.instance": "client",
 		"redis.key":   "client",

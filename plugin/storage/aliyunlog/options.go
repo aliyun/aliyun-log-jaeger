@@ -33,7 +33,9 @@ const (
 	suffixMaxQueryDuration = ".max-query-duration"
 	suffixInitResourceFlag = ".init-resource-flag"
 	suffixTagAppenderRule  = ".tag-appender-rules"
+	suffixTagAppenderRuleFlag  = ".tag-appender-rules-enabled"
 	suffixKindRewriteRule  = ".kind-rewrite-rules"
+	suffixKindRewriteRuleFlag  = ".kind-rewrite-rules-enabled"
 )
 
 // Options contains various type of AliCloud Log Service configs and provides the ability
@@ -66,7 +68,9 @@ func NewOptions(primaryNamespace string, otherNamespaces ...string) *Options {
 				MaxQueryDuration: 24 * time.Hour,
 				InitResourceFlag: true,
 				TagAppendRuleFile: "",
+				TagAppendRuleFileFlag: false,
 				KindRewriteRuleFile: "",
+				KindRewriteRuleFileFlag: false,
 			},
 			namespace: primaryNamespace,
 		},
@@ -130,9 +134,17 @@ func addFlags(flagSet *flag.FlagSet, nsConfig *namespaceConfig) {
 		nsConfig.TagAppendRuleFile,
 		"The file of rule which appending tag to span.")
 	flagSet.String(
+		nsConfig.namespace+suffixTagAppenderRuleFlag,
+		nsConfig.TagAppendRuleFile,
+		"The flag which enabled appending tag to span.")
+	flagSet.String(
 		nsConfig.namespace+suffixKindRewriteRule,
 		nsConfig.KindRewriteRuleFile,
 		"The file of rule which rewriting span kind.")
+	flagSet.String(
+		nsConfig.namespace+suffixKindRewriteRuleFlag,
+		nsConfig.KindRewriteRuleFile,
+		"The flag which enabled rewriting span kind.")
 }
 
 // InitFromViper initializes Options with properties from viper
@@ -154,7 +166,9 @@ func initFromViper(cfg *namespaceConfig, v *viper.Viper) {
 	cfg.MaxQueryDuration = v.GetDuration(cfg.namespace + suffixMaxQueryDuration)
 	cfg.InitResourceFlag = v.GetBool(cfg.namespace + suffixInitResourceFlag)
 	cfg.TagAppendRuleFile = v.GetString(cfg.namespace + suffixTagAppenderRule)
+	cfg.TagAppendRuleFileFlag = v.GetBool(cfg.namespace + suffixTagAppenderRuleFlag)
 	cfg.KindRewriteRuleFile = v.GetString(cfg.namespace + suffixKindRewriteRule)
+	cfg.TagAppendRuleFileFlag = v.GetBool(cfg.namespace + suffixTagAppenderRuleFlag)
 }
 
 // GetPrimary returns primary configuration.

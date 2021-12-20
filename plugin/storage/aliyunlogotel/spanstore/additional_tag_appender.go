@@ -39,7 +39,11 @@ func (t tagRules) OperationPrefixRules() map[string]*TagMappingValue {
 	return t.OperationNameRules
 }
 
-func initTagAppendRules(ruleFile string) TagAppendRules {
+func initTagAppendRules(ruleFile string, flag bool) TagAppendRules {
+	if !flag {
+		return &tagRules{SpanTagRule: make(map[string]*TagMappingValue), OperationNameRules: make(map[string]*TagMappingValue)}
+	}
+
 	var spanTagsAppendRules = map[string]*TagMappingValue{
 		"db.instance": {TagKey: "db.system", TagValue: "Database"},
 		"redis.key":   {TagKey: "db.system", TagValue: "Redis"},
