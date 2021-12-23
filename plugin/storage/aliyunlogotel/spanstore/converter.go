@@ -92,9 +92,14 @@ func (c converter) fromSpanToLogContents(span *model.Span, tagAppendRules TagApp
 	var kind string
 
 	for _, tag := range span.Tags {
+		if tag.Key == "span.kind" {
+			contained = true
+			kind = tag.VStr
+		}
+
 		if k, ok := kindRewriteRules.SpanKindRules()[tag.Key]; ok {
 			contained = true
-			kind = k;
+			kind = k
 		}
 
 		if k, ok := tagAppendRules.SpanTagRules()[tag.Key]; ok {

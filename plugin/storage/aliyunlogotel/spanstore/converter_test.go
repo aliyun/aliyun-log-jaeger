@@ -69,12 +69,13 @@ var (
 	someTags = model.KeyValues{
 		model.String(someStringTagKey, someStringTagValue),
 		model.String("db.instance", "db instance"),
+		model.String("span.kind", "client"),
 		model.Bool(someBoolTagKey, someBoolTagValue),
 		model.Int64(someLongTagKey, someLongTagValue),
 		model.Float64(someDoubleTagKey, someDoubleTagValue),
 		model.Binary(someBinaryTagKey, someBinaryTagValue),
 	}
-	someTagsValueStr = "[{\"key\":\"someStringTag\",\"vType\":\"string\",\"vStr\":\"someTagValue\"},{\"key\":\"someBoolTag\",\"vType\":\"bool\",\"vNum\":1},{\"key\":\"someLongTag\",\"vType\":\"int64\",\"vNum\":123},{\"key\":\"someDoubleTag\",\"vType\":\"float64\",\"vNum\":4608983858650965606},{\"key\":\"someBinaryTag\",\"vType\":\"binary\",\"vBlob\":\"c29tZUJpbmFyeVZhbHVl\"}]"
+	someTagsValueStr = "[{\"key\":\"span.kind\",\"vType\":\"string\",\"vStr\":\"client\"},{\"key\":\"someStringTag\",\"vType\":\"string\",\"vStr\":\"someTagValue\"},{\"key\":\"someBoolTag\",\"vType\":\"bool\",\"vNum\":1},{\"key\":\"someLongTag\",\"vType\":\"int64\",\"vNum\":123},{\"key\":\"someDoubleTag\",\"vType\":\"float64\",\"vNum\":4608983858650965606},{\"key\":\"someBinaryTag\",\"vType\":\"binary\",\"vBlob\":\"c29tZUJpbmFyeVZhbHVl\"}]"
 
 	someUnusualTags = model.KeyValues{
 		model.String(someStringTagKey, someStringTagValue),
