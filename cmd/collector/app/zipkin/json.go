@@ -270,7 +270,7 @@ func parseIpv6(str string) (net.IP, error) {
 	return ip, nil
 }
 
-func parseIpv4(str string) (int32, error) {
+func parseIpv4(str string) (uint32, error) {
 	if str == "" {
 		return 0, nil
 	}
@@ -280,9 +280,9 @@ func parseIpv4(str string) (int32, error) {
 		return 0, errWrongIpv4
 	}
 
-	var ipv4 int32
+	var ipv4 uint32
 	for _, segment := range ip {
-		parsed32 := int32(segment)
+		parsed32 := uint32(segment)
 		ipv4 = ipv4<<8 | (parsed32 & 0xff)
 	}
 
