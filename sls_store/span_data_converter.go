@@ -29,8 +29,17 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 		Tags: make([]model.KeyValue, 0),
 	}
 
+	var index int = -1
 	for k, v := range log {
 		switch k {
+		case ParentSpanID:
+			id, err := model.SpanIDFromString(v)
+			if err == nil {
+				span.References = append(span.References, model.SpanRef{
+					SpanID: id,
+				})
+				index = len(span.References) - 1
+			}
 		case TraceID:
 			traceID, err := model.TraceIDFromString(v)
 			if err != nil {
@@ -68,7 +77,11 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 				logger.Warn("Failed to convert links", "key", k, "value", v, "exception", err)
 				return nil, err
 			}
-			span.References = refs
+			if len(span.References) > 0 {
+				span.References = append(span.References, refs...)
+			} else {
+				span.References = refs
+			}
 			break
 		case Logs:
 			logs, err := unmarshalLogs(v)
@@ -94,6 +107,9 @@ func (dataConverterImpl) ToJaegerSpan(log map[string]string) (*model.Span, error
 				span.Warnings = append(span.Warnings, v)
 			}
 		}
+	}
+	if index != -1 {
+		span.References[index].TraceID = span.TraceID
 	}
 
 	span.Process = &process
